@@ -153,12 +153,51 @@
             </div>
         </div>
         
-        <!-- Cosmic Sound Toggle -->
-        <button id="sound-toggle" onclick="toggleCelestialSound()" class="px-3 py-1.5 rounded-full border border-purple-500/30 text-purple-300 text-xs flex items-center space-x-1.5 hover:bg-purple-950/40 transition">
-            <i class="fa-solid fa-volume-xmark" id="sound-icon"></i>
-            <span id="sound-text">開啟靜心磬音</span>
-        </button>
+        <!-- Controls (Sound & Settings) -->
+        <div class="flex items-center space-x-3">
+            <button id="sound-toggle" onclick="toggleCelestialSound()" class="px-3 py-1.5 rounded-full border border-purple-500/30 text-purple-300 text-xs flex items-center space-x-1.5 hover:bg-purple-950/40 transition">
+                <i class="fa-solid fa-volume-xmark" id="sound-icon"></i>
+                <span id="sound-text">開啟靜心磬音</span>
+            </button>
+            <button onclick="toggleSettingsModal()" class="w-8 h-8 rounded-full border border-purple-500/30 text-purple-300 hover:bg-purple-950/40 transition flex items-center justify-center text-xs" title="大祭司星際設定">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
     </header>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="bg-slate-950 border border-purple-500/30 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-purple-950/60 pb-3">
+                <h3 class="text-base font-serif text-yellow-300 font-semibold flex items-center space-x-2">
+                    <i class="fa-solid fa-key"></i>
+                    <span>大祭司星際連線設定</span>
+                </h3>
+                <button onclick="toggleSettingsModal()" class="text-purple-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <p class="text-xs text-purple-300 leading-relaxed">
+                    本占卜網頁在預覽平台中可自動連線。若您下載至本機或部署至個人網站，請於下方輸入您的 <strong class="text-yellow-100">Gemini API Key</strong>。此金鑰僅會保存在您當前的瀏覽器記憶體中，絕對安全且不會寫入任何程式碼。
+                </p>
+                <div>
+                    <label class="block text-[11px] font-semibold text-purple-300 uppercase tracking-wider mb-1.5">Gemini API Key：</label>
+                    <input type="password" id="api-key-input" 
+                        class="w-full bg-purple-950/40 border border-purple-500/30 rounded-xl px-3 py-2 text-white text-sm placeholder-purple-300/30 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition-all"
+                        placeholder="AIzaSy...（留空則使用預設平台通道）">
+                </div>
+            </div>
+            <div class="pt-2 flex justify-end space-x-3">
+                <button onclick="toggleSettingsModal()" class="px-4 py-2 bg-purple-950/20 hover:bg-purple-950/40 border border-purple-500/10 rounded-xl text-xs text-gray-400 transition">
+                    取消
+                </button>
+                <button onclick="saveSettings()" class="px-4 py-2 btn-gold text-purple-950 font-bold rounded-xl text-xs transition">
+                    確認儲存
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Main Container -->
     <main class="relative z-10 flex-grow max-w-6xl w-full mx-auto px-4 py-8 flex flex-col justify-center items-center">
@@ -178,6 +217,14 @@
                 <span class="text-xs font-semibold uppercase tracking-widest text-yellow-400 bg-yellow-500/10 px-3 py-1 rounded-full">AI 宇宙覺察</span>
                 <h2 class="text-3xl font-serif font-semibold mt-3 text-white">開啟星際智慧對話</h2>
                 <p class="text-gray-400 mt-1.5 text-sm">此時此刻，將思緒放緩。選擇你的解密陣型，對繁星寫下你的迷茫。</p>
+            </div>
+
+            <!-- Testing Indicator Banner (Visible if test mode parameter is detected) -->
+            <div id="test-mode-banner" class="hidden mb-4 bg-yellow-500/15 border border-yellow-500/40 p-3 rounded-xl text-center">
+                <p class="text-xs text-yellow-300 flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-vial animate-pulse"></i>
+                    <span><strong>已啟用「團隊免金鑰測試模式」</strong>：大祭司已進入離線自我意識，不需金鑰即可測試全部功能！</span>
+                </p>
             </div>
 
             <div class="space-y-5">
@@ -404,11 +451,11 @@
         const ORACLE_DECK = [
             { id: 1, title: "星際啟航", keywords: "探索 ｜ 勇氣 ｜ 全新旅程", description: "象徵踏入完全未知的領域，拋開過往的思維模式。宇宙正在召喚您展開新世界，不要害怕跨出舒適圈。", gradient: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%)", icon: "fa-regular fa-paper-plane", color: "blue" },
             { id: 2, title: "深海靜默", keywords: "內省 ｜ 智慧 ｜ 保持耐心", description: "當下不宜急躁推進，而需像深海一般沉澱。在萬籟俱寂的內在自我中，能找到解決現實阻礙的核心智慧。", gradient: "linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%)", icon: "fa-solid fa-water", color: "darkblue" },
-            { id: 3, title: "鳳凰浴火", keywords: "蛻變 ｜ 重生 ｜ 意志淬鍊", description: "一段舊關係、舊信念或模式的消逝，是為了騰出嶄新生命的空間。浴火過後的您，將具備前所未有的強大生命力。", gradient: "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #f59e0b 100%)", icon: "fa-solid fa-fire-flame-curved", color: "red" },
+            { id: 3, title: "鳳凰浴火", keywords: "蛻變 ｜ 重生 ｜ 意志淬鍊", description: "一段舊關係、舊信念 or 模式的消逝，是為了騰出嶄新生命的空間。浴火過後的您，將具備前所未有的強大生命力。", gradient: "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #f59e0b 100%)", icon: "fa-solid fa-fire-flame-curved", color: "red" },
             { id: 4, title: "大地根基", keywords: "穩定 ｜ 養分 ｜ 扎根實踐", description: "檢視您的現實基底。無論是財務、身體健康或是具體計畫，都需要一步一腳印、穩紮穩打地築巢，不宜好高鶩遠。", gradient: "linear-gradient(135deg, #1c1917 0%, #44403c 50%, #78716c 100%)", icon: "fa-solid fa-mountain", color: "earth" },
             { id: 5, title: "月影微光", keywords: "直覺 ｜ 潛意識 ｜ 迷霧探索", description: "理性無法解釋所有的事物，相信您那敏銳的直覺與夢境預示。有些真相正隱藏在陰暗面中，需要用溫柔的感知去揭開。", gradient: "linear-gradient(135deg, #2e1065 0%, #581c87 50%, #d8b4fe 100%)", icon: "fa-regular fa-moon", color: "purple" },
             { id: 6, title: "烈陽真火", keywords: "生命力 ｜ 顯化 ｜ 成功在望", description: "無比的光明與正面能量正匯聚於此。您的想法有極高的實踐可能，盡情展現熱情與自信，您的光芒將照耀周遭的夥伴。", gradient: "linear-gradient(135deg, #ea580c 0%, #facc15 50%, #fef08a 100%)", icon: "fa-regular fa-sun", color: "yellow" },
-            { id: 7, title: "命運之輪", keywords: "周期 ｜ 變革 ｜ 順應時勢", description: "生命中有些不可逆轉的巨大輪轉正在發生。學會隨風起舞，而非執著抵抗。接受無常，才能找到生命最完美的平衡點。", gradient: "linear-gradient(135deg, #065f46 0%, #059669 50%, #6ee7b7 100%)", icon: "fa-solid fa-arrows-spin", color: "green" },
+            { id: 7, title: "命運之輪", keywords: "周期 ｜ 變革 ｜ 順應時勢", description: "生命中有些不可逆轉的巨大輪轉正在发生。學會隨風起舞，而非執著抵抗。接受無常，才能找到生命最完美的平衡點。", gradient: "linear-gradient(135deg, #065f46 0%, #059669 50%, #6ee7b7 100%)", icon: "fa-solid fa-arrows-spin", color: "green" },
             { id: 8, title: "微風耳語", keywords: "溝通 ｜ 靈活 ｜ 資訊傳遞", description: "多加留意突如其來的消息、或是他人偶然的提議。保持像風一般的流動性，切忌固步自封。良善的溝通是當前的解方。", gradient: "linear-gradient(135deg, #115e59 0%, #14b8a6 50%, #99f6e4 100%)", icon: "fa-solid fa-wind", color: "teal" },
             { id: 9, title: "心靈之泉", keywords: "治癒 ｜ 愛 ｜ 豐盛感知", description: "這是一張極具情感滋養的牌，象徵關係修復或自我接納。給予自己一些溫柔的呵護與原諒，您內在的愛能化解所有防備。", gradient: "linear-gradient(135deg, #0369a1 0%, #0ea5e9 50%, #bae6fd 100%)", icon: "fa-solid fa-droplet", color: "lightblue" },
             { id: 10, title: "真理之鑰", keywords: "啟示 ｜ 頓悟 ｜ 真實核心", description: "迷霧終將散去，一場重要的頓悟即將到來。看清事物的本質而非表面包裝。這張牌要求您對自己與他人保持絕對的誠實。", gradient: "linear-gradient(135deg, #854d0e 0%, #ca8a04 50%, #fef9c3 100%)", icon: "fa-solid fa-key", color: "gold" },
@@ -418,14 +465,38 @@
 
         // State variables
         let selectedQuestion = "";
-        let spreadType = "single"; // 'single' or 'three'
-        let drawnCards = []; // Store multiple drawn cards
+        let spreadType = "single";
+        let drawnCards = [];
         let isSoundPlaying = false;
         let audioCtx = null;
         let ambientOscillator = null;
         let ambientGainNode = null;
         let apiReadingText = ""; 
-        let dialogHistory = []; // Conversation threads for continuous dialogue
+        let dialogHistory = [];
+        
+        // --- Smart API Key Resolution & Auto Storage Sync ---
+        // 1. Check if there's a security key query parameter in the URL (?key=xxx)
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlKey = urlParams.get('key');
+        
+        // --- Automatic Team No-Key Testing Channel ---
+        // If "test=true" parameter is found in URL, force off-line simulated responses without key restrictions!
+        const isNoKeyTestMode = urlParams.get('test') === 'true' || urlParams.get('test') === '1';
+
+        if (urlKey) {
+            localStorage.setItem('nebula_oracle_api_key', urlKey.trim());
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // Show test banner if in simulation mode
+        window.addEventListener('DOMContentLoaded', () => {
+            if (isNoKeyTestMode) {
+                document.getElementById('test-mode-banner').classList.remove('hidden');
+            }
+        });
+
+        // 2. Load configured API key directly from sandbox local storage (keeps original source code clean of secrets!)
+        let userConfiguredApiKey = localStorage.getItem('nebula_oracle_api_key') || "";
 
         // Touch & mouse particles state
         const canvas = document.getElementById('particle-canvas');
@@ -436,7 +507,6 @@
         let mouseY = 0;
         let isMouseInWindow = false;
 
-        // Custom responsive sizes
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -444,7 +514,6 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Standard Ambient Space Particle
         class AmbientParticle {
             constructor() {
                 this.reset();
@@ -462,7 +531,6 @@
                 this.x += this.speedX;
                 this.y += this.speedY;
                 
-                // Breath-like pulsing
                 this.opacity += this.pulseDir;
                 if (this.opacity > 0.75 || this.opacity < 0.1) {
                     this.pulseDir = -this.pulseDir;
@@ -480,7 +548,6 @@
             }
         }
 
-        // Mouse Trail Particle (Interactive Star Dust)
         class CursorSparkle {
             constructor(x, y) {
                 this.x = x;
@@ -488,9 +555,9 @@
                 this.size = Math.random() * 3 + 1;
                 this.speedX = (Math.random() - 0.5) * 2;
                 this.speedY = (Math.random() - 0.5) * 2;
-                this.life = 1.0; // Decay factor
+                this.life = 1.0;
                 this.decay = Math.random() * 0.02 + 0.015;
-                this.colorHue = Math.random() > 0.5 ? 45 : 275; // Gold (45) or Royal Violet (275)
+                this.colorHue = Math.random() > 0.5 ? 45 : 275;
             }
             update() {
                 this.x += this.speedX;
@@ -508,12 +575,10 @@
             }
         }
 
-        // Initialize background ambient particles
         for (let i = 0; i < 60; i++) {
             ambientParticles.push(new AmbientParticle());
         }
 
-        // Handle Mouse Events for Interactive Star Dust
         window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
@@ -537,7 +602,6 @@
             isMouseInWindow = false;
         });
 
-        // Combined particle loop
         function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
@@ -560,7 +624,6 @@
         }
         animateParticles();
 
-        // Procedural Audio Engine for Ambient Space Sound
         function initAudio() {
             if (audioCtx) return;
             try {
@@ -642,7 +705,27 @@
             }
         }
 
-        // Change card spread types dynamically
+        // --- Settings Modal Interactivity ---
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            const input = document.getElementById('api-key-input');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                input.value = userConfiguredApiKey;
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function saveSettings() {
+            const inputVal = document.getElementById('api-key-input').value.trim();
+            userConfiguredApiKey = inputVal;
+            // Write to sandbox localstorage so user only has to configure it once locally!
+            localStorage.setItem('nebula_oracle_api_key', userConfiguredApiKey);
+            toggleSettingsModal();
+            playChime(523.25, 'sine', 0.4);
+        }
+
         function setSpreadType(type) {
             spreadType = type;
             const singleBtn = document.getElementById('spread-single');
@@ -661,7 +744,6 @@
             }
         }
 
-        // UI navigation helpers
         function fillPresetQuestion(txt) {
             document.getElementById('oracle-question').value = txt;
         }
@@ -831,7 +913,6 @@
             });
         }
 
-        // 3D Parallax Tilt Effect Engine for cards
         function bind3DParallaxToCard(cardElement) {
             const cardInner = cardElement.querySelector('.card-inner');
             
@@ -975,8 +1056,76 @@
                 }, idx * 400 + 400);
             });
 
-            // Begin Gemini Call directly without updating non-existent legacy elements
             fetchOracleInterpretation();
+        }
+
+        // --- Exponential Backoff Fetch Utility ---
+        async function fetchWithBackoff(url, options, maxRetries = 5) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) {
+                        return response;
+                    }
+                } catch (err) {
+                    if (i === maxRetries - 1) throw err;
+                }
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            }
+            throw new Error("星際波長異常，與星河連結多次嘗試後斷開。");
+        }
+
+        // Offline Fallback/Mock Generator to let teams test without API keys
+        function generateOfflineMockInterpretation(question, cards) {
+            if (cards.length === 1) {
+                const card = cards[0];
+                return `### 🌟【星流契合：大祭司的靈性一瞥】
+親愛的尋路人，請看著我為你翻開的這張 **【${card.title}】**。在繁星閃爍、光譜交融的瞬間，我感受到你體內那股在疑惑中微微顫動的心弦。你問道：「*${question}*」，而這張牌卡的顯現，正是宇宙此時此刻為你投下的一道核心微光。
+
+### 💫【命運共振：大祭司解答你的疑惑】
+大自然萬物皆有其律動。針對你的提問，**【${card.title}】** 代表的 **${card.keywords}** 意味著，你當前面對的處境並非偶然。有時，我們感到困惑是因為我們在用過去的框架試圖解釋未來的走向。這張牌卡要求你放慢你的理性焦慮，去傾聽直覺與現狀中透露出來的真正信息。星軌的軌跡已經指明，你所擔憂的事情，其真正的出路往往藏在你一直忽視的微小細節中。
+
+### 🌿【星際良方：落實生活的具體練習】
+為了協助你調整靈魂磁場、落實下一步：
+- **靜心覺察**：在接下來的三天內，每天給予自己 5 分鐘排除一切數位干擾，專注於呼吸。
+- **行動實踐**：針對「${question}」，嘗試寫下最壞的預期，然後用這張牌卡象徵的「${card.keywords.split('｜')[0]}」能量，去尋找一條最溫柔、最務實的具體突破路徑。
+
+### ✨【大祭司的守護祝福】
+我的孩子，請記住，星空從來不曾阻擋任何人的道路，它只是反射出你靈魂本就擁有的璀璨光芒。在物質宇宙中，你永遠擁有自由選擇的自主權。你心中是否還有任何疑惑，或這張牌卡的感應有觸動到你內心什麼角落？歡迎隨時向我追加提問，我將一直在星宇秘境中守護著你。`;
+            } else {
+                return `### ⏳【三生時空：大祭司的時間漫步】
+當這三張星卡依序在星盤落下，我聽見了命運齒輪相互咬合轉動的低鳴。
+- **【過去｜根源之引】**：**【${cards[0].title}】**（象徵：${cards[0].keywords}），說明你之前已經歷了某些能量的轉變，或是一個不得不做出的基礎選擇，這是你當前困惑的根基。
+- **【現在｜現狀映照】**：**【${cards[1].title}】**（象徵：${cards[1].keywords}），顯示你此時此刻正面臨的靈魂卡點，正處於動盪、沉澱或淬鍊的關鍵漩渦。
+- **【未來｜命運指引】**：**【${cards[2].title}】**（象徵：${cards[2].keywords}），昭示著即將開啟的新道路與智慧，這是跨越考驗後，宇宙正在為你編織的最佳出口。
+
+### 💫【星圖串連：命運的因果脈絡】
+孩子，看著這條時空流：從 **${cards[0].title}** 到 **${cards[1].title}** 再到 **${cards[2].title}**。你所問的「*${question}*」是一個非常美麗的生命探求。因果線極其清晰地指出——你之所以會在此時感到卡關（現狀），是因為你仍在試圖用過去的舊方法去解決全新的命運關卡。而未來卡的顯現正是在呼喚你：唯有順應當前的變化，拿出勇氣與智慧去擁抱不確定性，時空流才會為你開展最豐盛的祝福。
+
+### 🌿【靈魂修煉：大祭司的生活處方】
+以下是我為你量身打造的三項能量調整練習：
+1. **釋放過往**：向過去的經驗道謝，並在心裡默唸「我已做足準備，感謝這段旅程的養分」。
+2. **聚焦現狀**：針對「${question}」，找出一個你當下最能掌控的微小改進點，並在 24 小時內落實執行。
+3. **迎向光芒**：每天早晨給予自己一個肯定的微笑，並觀想未來卡帶給你的那股力量。
+
+### ✨【時空守護祝福】
+命運是一首無止境的星河協奏曲，雖然會有起伏、有低鳴，但最後的音符必定能交織出和諧的璀璨。希望賽莉絲蒂亞今天的開示能帶給你的心靈一些溫柔的擁抱。孩子，你對我為你抽出的這三張牌有什麼特別的感受嗎？還是有些未解的細節想要向我深入探詢？請隨時對我傾訴。`;
+            }
+        }
+
+        // Mock followup reply logic for offline testing
+        function generateOfflineMockFollowup(userQuestion) {
+            return `親愛的尋路人，你追加問道：「*${userQuestion}*」。
+
+我閉上雙眼，手中的星晶微微閃爍著溫和的紫金色光芒。我能深切感受到你文字背後那一絲對未來的焦慮、或是想要把握當下的渴望。
+
+不論你所抽到的是哪張牌卡，它都在揭示一個永恆的定律——**「所有的答案，早已寫在你的靈魂深處」**。你目前的猶豫並不是因為你不知道該怎麼做，而是因為你在尋求一個「絕對安全、不容犯錯」的保證。
+
+然而，星塵的流動正是因為無常而美麗。我給你的建議是，試著放開對「完美結果」的掌控欲，轉而專注於「當前最能讓你感到心靈自由、充滿熱情」的那個微小步驟。當你跨出第一步，迷霧自然會為你退開。
+
+星河會繼續守護著你前行的腳步，你覺得這個感應符合你內心的真實直覺嗎？`;
         }
 
         // Calls Gemini-2.5-Flash to analyze current state
@@ -984,8 +1133,21 @@
             let systemPrompt = "";
             let userPrompt = "";
 
-            // Reset Dialogue history for a fresh session
             dialogHistory = [];
+
+            // 1. Prioritize Team Free testing mode (Offline emulation bypasses API)
+            if (isNoKeyTestMode) {
+                setTimeout(() => {
+                    const mockResult = generateOfflineMockInterpretation(selectedQuestion, drawnCards);
+                    apiReadingText = mockResult;
+                    dialogHistory.push({ role: "model", text: mockResult });
+                    
+                    document.getElementById('ai-loading').classList.add('hidden');
+                    appendPriestessMessage(mockResult);
+                    document.getElementById('followup-chat-panel').classList.remove('hidden');
+                }, 1800); // Realistic 1.8s spiritual contemplation delay
+                return;
+            }
 
             if (spreadType === 'single') {
                 systemPrompt = `你現在是星宿大祭司「賽莉絲蒂亞」(Celestia)，一位精通星雲神祕學、心理覺察與靈魂指引的線上心靈導師。請以溫和、充滿詩意、洞察人心、且極度溫柔包容的繁體中文（台灣習慣用語）與使用者進行面對面的神諭占卜對話。
@@ -995,7 +1157,7 @@
 
 首要解讀必須精美且有層次，包含：
 1. 🌟【星流契合：大祭司的靈性一瞥】(以溫柔口吻描述你翻開卡牌時的感應，以及卡牌能量的初步顯現)
-2. 💫【命運共振：大祭司解答你的疑惑】(針對使用者輸入的具體問題，抽絲剝繭地融會牌面盲點，解答其人生困局)
+2. 💫【命運共振：大祭司解答你的疑惑】(針對使用者輸入的具體問題，抽絲繭地融會牌面盲點，解答其人生困局)
 3. 🌿【星際良方：落實生活的具體練習】(給予使用者 2~3 個本週就能開始落實、有智慧的具體日常心靈日常行動)
 4. ✨【大祭司的守護祝福】(一段非常溫暖的靈魂結語，並溫柔地詢問尋路人，是否有任何感受想要進一步交流或提問)
 
@@ -1015,24 +1177,25 @@
 1. ⏳【三生時空：大祭司的時間漫步】(分別精妙、簡潔地描述「過去」、「現在」、「未來」三張牌卡的因果演變)
 2. 💫【星圖串連：命運的因果脈絡】(針對使用者的具體問題，深度剖析這三張牌組合產生的化學反應，解答使用者的卡點)
 3. 🌿【靈魂修煉：大祭司的生活處方】(提供 3 個實用的、在日常中調整能量狀態的具體指引)
-4. ✨【時空守護祝福】(一段激勵與關懷的優美結語，並溫柔地詢問尋路人，是否有任何感受想要進一步交流或提問)
+4. ✨【時空守護祝福】(一段擺脫束縛、激勵與關懷的優美結語，並溫柔地詢問尋路人，是否有任何感受想要進一步交流或提問)
 
 請記住，請保持分段清晰，並在結尾真誠地邀請尋路人追問。`;
 
-                userPrompt = `使用者(尋路人)的問題："${selectedQuestion}"
+                userPrompt = `使用者(尋row人)的問題："${selectedQuestion}"
 1. 【過去/根源】卡牌名：${drawnCards[0].title} (大意: ${drawnCards[0].description})
 2. 【現在/現狀】卡牌名：${drawnCards[1].title} (大意: ${drawnCards[1].description})
 3. 【未來/啟示】卡牌名：${drawnCards[2].title} (大意: ${drawnCards[2].description})`;
             }
 
-            // Save system prompt inside conversation state
             dialogHistory.push({ role: "system", text: systemPrompt });
 
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            // Zero-Leak safe key configuration (leaves source code 100% clean of hardcoded keys!)
+            const apiKey = ""; 
+            const activeKey = userConfiguredApiKey || apiKey;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`;
 
             try {
-                const response = await fetch(apiUrl, {
+                const response = await fetchWithBackoff(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1041,41 +1204,47 @@
                     })
                 });
 
-                if (!response.ok) throw new Error("星際波長異常，與星河連結斷開");
-
                 const result = await response.json();
                 const content = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (content) {
                     apiReadingText = content;
-                    
-                    // Add this initial priestess message to our dialogue history
                     dialogHistory.push({ role: "model", text: content });
 
-                    // Hide Loader & Display Main Dialogue Bubble
                     document.getElementById('ai-loading').classList.add('hidden');
                     appendPriestessMessage(content);
-                    
-                    // Display follow-up interface
                     document.getElementById('followup-chat-panel').classList.remove('hidden');
                 } else {
-                    throw new Error("無法讀取星海意圖");
+                    throw new Error("星際通道中斷，大祭司並未感應到明確答案");
                 }
 
             } catch (err) {
                 console.error(err);
                 document.getElementById('ai-loading').innerHTML = `
                     <div class="text-center py-8 text-red-400">
-                        <i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i>
-                        <p class="font-semibold">星系信號傳遞受阻</p>
-                        <p class="text-xs text-gray-500 mt-1">${err.message || '請重新嘗試或檢查網路'}</p>
-                        <button onclick="fetchOracleInterpretation()" class="mt-4 px-4 py-2 bg-purple-950 border border-purple-500 text-xs rounded-lg text-white hover:bg-purple-900 transition">重新連結</button>
+                        <i class="fa-solid fa-triangle-exclamation text-3xl mb-3 animate-bounce"></i>
+                        <p class="font-semibold text-base">星系信號傳遞受阻</p>
+                        <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto">大祭司的靈魂連結暫時被磁流干擾 (${err.message || '連線逾時'})</p>
+                        <button onclick="retryInitialInterpretation()" class="mt-4 px-5 py-2.5 bg-gradient-to-r from-yellow-500 to-amber-600 text-purple-950 font-bold text-sm rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center space-x-2 mx-auto">
+                            <i class="fa-solid fa-cloud-bolt text-xs"></i>
+                            <span>重新連結星河</span>
+                        </button>
                     </div>
                 `;
             }
         }
 
-        // Append Priestess response into interactive dialogue scroller
+        function retryInitialInterpretation() {
+            document.getElementById('ai-loading').innerHTML = `
+                <div class="relative w-12 h-12">
+                    <div class="absolute inset-0 rounded-full border-4 border-purple-500/20"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-t-yellow-400 animate-spin"></div>
+                </div>
+                <p class="text-xs text-purple-300 font-serif italic animate-pulse">大祭司正重新與星河共鳴中...</p>
+            `;
+            fetchOracleInterpretation();
+        }
+
         function appendPriestessMessage(rawText) {
             const chatContent = document.getElementById('dynamic-chat-content');
             
@@ -1087,10 +1256,8 @@
             avatar.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>`;
             
             const bubble = document.createElement('div');
-            // Adjusted classes to elevate reading font-sizes: text-sm md:text-base (Originally text-xs md:text-sm)
             bubble.className = "bg-purple-950/30 border border-purple-500/20 rounded-2xl rounded-tl-none p-4 max-w-[85%] text-sm md:text-base text-purple-100 leading-relaxed space-y-3.5 shadow-lg";
             
-            // Format markdown to beautiful elements
             const paragraphs = rawText.split('\n');
             paragraphs.forEach(p => {
                 const trimmed = p.trim();
@@ -1100,7 +1267,6 @@
                 if (trimmed.startsWith('###') || trimmed.startsWith('##') || (trimmed.startsWith('**') && trimmed.endsWith('**'))) {
                     const cleanTxt = trimmed.replace(/[#\*]/g, '').trim();
                     element = document.createElement('h4');
-                    // Elevating title block font: text-base md:text-lg
                     element.className = "text-base md:text-lg font-serif font-semibold text-yellow-300 mt-5 mb-2.5 border-l-2 border-yellow-500/50 pl-2.5";
                     element.innerHTML = cleanTxt;
                 } else if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
@@ -1122,12 +1288,10 @@
 
             scrollToBottom();
             
-            // Make latest priestess block accessible by Voice Player
             apiReadingText = rawText;
             document.getElementById('tts-btn').classList.remove('hidden');
         }
 
-        // Append seeker user question bubbles
         function appendUserMessage(text) {
             const chatContent = document.getElementById('dynamic-chat-content');
             
@@ -1135,7 +1299,6 @@
             outerDiv.className = "chat-bubble flex space-x-3 items-start justify-end";
             
             const bubble = document.createElement('div');
-            // Adjusted classes to elevate user bubble font-sizes: text-sm md:text-base
             bubble.className = "bg-yellow-500/10 border border-yellow-500/30 rounded-2xl rounded-tr-none p-3.5 max-w-[80%] text-sm md:text-base text-yellow-100 leading-relaxed shadow";
             bubble.textContent = text;
             
@@ -1157,6 +1320,12 @@
             }, 100);
         }
 
+        document.getElementById('followup-input').addEventListener('input', function() {
+            // Auto expand text area height based on input length
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
         function handleChatKey(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
@@ -1164,24 +1333,21 @@
             }
         }
 
+        // --- Quick interaction chips ---
         function sendQuickFollowup(text) {
             document.getElementById('followup-input').value = text;
             submitFollowup();
         }
 
-        // Submit follow-up user message to Priestess Celestia via Gemini
         async function submitFollowup() {
             const inputEl = document.getElementById('followup-input');
             const question = inputEl.value.trim();
             if (!question) return;
 
-            // Clear input box
             inputEl.value = "";
-
-            // Display user message visually
+            inputEl.style.height = 'auto'; // Reset height
             appendUserMessage(question);
 
-            // Insert placeholder typing loader from Celestia
             const chatContent = document.getElementById('dynamic-chat-content');
             const typingIndicator = document.createElement('div');
             typingIndicator.id = "priestess-typing";
@@ -1197,11 +1363,21 @@
             chatContent.appendChild(typingIndicator);
             scrollToBottom();
 
-            // Setup continuous history context to send to API
-            // Map dialogHistory into correct formats
-            const historyPayload = [];
-            
-            // Build system role context manually inside content
+            // 1. Force simulated reply flow under offline test parameter mode
+            if (isNoKeyTestMode) {
+                setTimeout(() => {
+                    const indicator = document.getElementById('priestess-typing');
+                    if (indicator) indicator.remove();
+
+                    const mockReply = generateOfflineMockFollowup(question);
+                    dialogHistory.push({ role: "user", text: question });
+                    dialogHistory.push({ role: "model", text: mockReply });
+
+                    appendPriestessMessage(mockReply);
+                }, 1500);
+                return;
+            }
+
             let compositeHistoryPrompt = "你現在是星宿大祭司「賽莉絲蒂亞」(Celestia)。使用者先前就提問、抽牌獲得了你的指引。\n";
             compositeHistoryPrompt += `原先提問："${selectedQuestion}"\n`;
             if (spreadType === 'single') {
@@ -1211,7 +1387,6 @@
             }
             compositeHistoryPrompt += "\n這是先前的對話歷史：\n";
             
-            // Append past chat turns
             dialogHistory.forEach(item => {
                 if (item.role === 'model') {
                     compositeHistoryPrompt += `大祭司賽莉絲蒂亞: "${item.text}"\n`;
@@ -1222,12 +1397,13 @@
 
             compositeHistoryPrompt += `\n現在，尋路人向你追加提問了這個問題： "${question}"。\n請大祭司賽莉絲蒂亞以一貫的神祕、溫柔且充滿療癒力量的口吻解答尋路人，提供深入、有啟示性且溫暖的指引，字數約在 200~300 字內。並在結尾持續歡迎他提問或感受。`;
 
-            // Call Gemini
+            // Zero-Leak safe key configuration (resolves key dynamic assignment at runtime)
             const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const activeKey = userConfiguredApiKey || apiKey;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`;
 
             try {
-                const response = await fetch(apiUrl, {
+                const response = await fetchWithBackoff(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1235,24 +1411,19 @@
                     })
                 });
 
-                // Remove typing indicator
                 const indicator = document.getElementById('priestess-typing');
                 if (indicator) indicator.remove();
-
-                if (!response.ok) throw new Error("星際通道震盪，大祭司的意識暫時受阻");
 
                 const result = await response.json();
                 const content = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (content) {
-                    // Save context thread
                     dialogHistory.push({ role: "user", text: question });
                     dialogHistory.push({ role: "model", text: content });
 
-                    // Display priestess response bubble
                     appendPriestessMessage(content);
                 } else {
-                    throw new Error("大祭司並未感應到明確答案");
+                    throw new Error("星雲阻擋了大祭司的視線");
                 }
 
             } catch (err) {
@@ -1264,8 +1435,11 @@
                 errorBubble.className = "chat-bubble flex space-x-3 items-start";
                 errorBubble.innerHTML = `
                     <div class="w-8 h-8 rounded-full bg-red-950 flex items-center justify-center text-red-300 flex-shrink-0 text-xs">!</div>
-                    <div class="bg-red-950/20 border border-red-500/20 rounded-2xl rounded-tl-none p-3.5 text-xs text-red-300">
-                        大祭司傳音受阻：${err.message || '請重新傳送追問。'}
+                    <div class="bg-red-950/20 border border-red-500/20 rounded-2xl rounded-tl-none p-3.5 text-sm text-red-300">
+                        大祭司傳音受阻：${err.message || '請點擊下方重試'}
+                        <button onclick="retryFollowup('${question.replace(/'/g, "\\'")}')" class="mt-2 block px-3 py-1 bg-yellow-500/20 hover:bg-yellow-500 hover:text-purple-950 transition rounded text-xs font-semibold">
+                            重新發送對話
+                        </button>
                     </div>
                 `;
                 chatContent.appendChild(errorBubble);
@@ -1273,8 +1447,17 @@
             }
         }
 
+        async function retryFollowup(oldQuestion) {
+            const chatContent = document.getElementById('dynamic-chat-content');
+            if (chatContent.lastChild) {
+                chatContent.removeChild(chatContent.lastChild);
+            }
+            document.getElementById('followup-input').value = oldQuestion;
+            submitFollowup();
+        }
+
         function parseInlineMarkdown(text) {
-            return text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-yellow-100 font-semibold">$1</strong>');
+            return text.replace(/\*\*(.*?)\*\"/g, '<strong class="text-yellow-100 font-semibold">$1</strong>');
         }
 
         // TTS rendering for oracle text (Gemini audio fallback)
@@ -1293,7 +1476,6 @@
             btnText.textContent = "正在共鳴祭司聖音...";
             btn.disabled = true;
 
-            // Generate clean speech context for latest dialogue bubble
             const cleanTtsText = `親愛的尋路人。針對你的疑惑，我的解讀是：\n` + 
                 apiReadingText.replace(/[#*_\-\n]/g, ' ').substring(0, 450) + '...祝你福至心靈，平安順心。';
 
@@ -1312,17 +1494,17 @@
                 model: "gemini-2.5-flash-preview-tts"
             };
 
-            const apiKey = "AIzaSyBt4z6Xy-9a7KB5vunLQtSzb7WFUxv16Dc";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+            // Zero-leak dynamic resolution of Gemini audio API
+            const apiKey = "";
+            const activeKey = userConfiguredApiKey || apiKey;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${activeKey}`;
 
             try {
-                const response = await fetch(apiUrl, {
+                const response = await fetchWithBackoff(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
-                if (!response.ok) throw new Error("語音通道忙碌中");
 
                 const result = await response.json();
                 const part = result?.candidates?.[0]?.content?.parts?.[0];
@@ -1406,7 +1588,6 @@
             }
         }
 
-        // Export complete conversational report to TXT file
         function downloadReport() {
             const today = new Date().toLocaleDateString('zh-TW');
             const cardsStr = spreadType === 'single' 
@@ -1422,7 +1603,7 @@
                 }
             });
 
-            const textContent = `============== 🌌 宇宙星啟 - 占卜神諭大祭司開示報告 (極致對話版) ==============
+            const textContent = `============== 🌌 宇宙星啟 - 占卜神諭大祭司開示報告 (高抗干擾對話版) ==============
 諮詢日期：${today}
 我的最初提問："${selectedQuestion}"
 選擇牌陣：${spreadType === 'single' ? '單牌每日指引' : '三牌時空時間流'}
@@ -1442,7 +1623,6 @@ ${chatHistoryStr}
             link.click();
         }
 
-        // Restart Oracle process flow and clear states
         function restartOracle() {
             const audioPlayer = document.getElementById('tts-audio');
             audioPlayer.pause();
@@ -1461,14 +1641,19 @@ ${chatHistoryStr}
             document.getElementById('dynamic-chat-content').innerHTML = "";
             document.getElementById('followup-chat-panel').classList.add('hidden');
             
-            // Step Transitions
             document.getElementById('step-3').classList.add('hidden');
             document.getElementById('step-1').classList.remove('hidden');
 
             document.getElementById('step-lbl-3').className = "opacity-40 transition-all";
             document.getElementById('step-lbl-1').className = "text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1";
             
-            // Reset loading placeholder view
+            document.getElementById('ai-loading').innerHTML = `
+                <div class="relative w-12 h-12">
+                    <div class="absolute inset-0 rounded-full border-4 border-purple-500/20"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-t-yellow-400 animate-spin"></div>
+                </div>
+                <p class="text-xs text-purple-300 font-serif italic animate-pulse">大祭司正與星河共鳴中...</p>
+            `;
             document.getElementById('ai-loading').classList.remove('hidden');
         }
     </script>
