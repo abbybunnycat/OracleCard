@@ -14,7 +14,7 @@
     <style>
         body {
             font-family: 'Noto Sans TC', 'Inter', sans-serif;
-            background: radial-gradient(circle at center, #100b26 0%, #05030f 100%);
+            background: radial-gradient(circle at center, #0f0a28 0%, #03020a 100%);
             color: #f3f4f6;
             overflow-x: hidden;
         }
@@ -44,16 +44,19 @@
         .btn-gold {
             background: linear-gradient(135deg, #aa7c11 0%, #d4af37 50%, #f3e5ab 100%);
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .btn-gold:hover {
+        .btn-gold:hover:not(:disabled) {
             box-shadow: 0 6px 25px rgba(212, 175, 55, 0.6);
             transform: translateY(-2px);
+        }
+        .btn-gold:active:not(:disabled) {
+            transform: translateY(1px);
         }
 
         /* 3D Card Flip styling */
         .card-container {
-            perspective: 1000px;
+            perspective: 1200px;
         }
         .card-inner {
             transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -69,24 +72,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            border-radius: 12px;
+            border-radius: 16px;
         }
         .card-back {
-            background: linear-gradient(135deg, #0f0a24 0%, #1a123a 100%);
-            border: 2px solid rgba(212, 175, 55, 0.4);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(135deg, #0e0924 0%, #170f37 100%);
+            border: 2px solid rgba(212, 175, 55, 0.35);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
         }
         .card-front {
             transform: rotateY(180deg);
-            background: linear-gradient(135deg, #150f30 0%, #0d091e 100%);
-            border: 2px solid rgba(212, 175, 55, 0.8);
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.25);
+            background: linear-gradient(135deg, #130d2b 0%, #0a0618 100%);
+            border: 2px solid rgba(212, 175, 55, 0.75);
+            box-shadow: 0 12px 35px rgba(212, 175, 55, 0.2);
         }
 
         /* Magical pulse animation */
         @keyframes subtle-pulse {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.02); opacity: 1; }
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.03); opacity: 1; }
         }
         .pulse-ambient {
             animation: subtle-pulse 4s ease-in-out infinite;
@@ -105,31 +108,55 @@
 
         /* Shuffling animation styles */
         .shuffling-card {
-            transition: all 0.5s ease-in-out;
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Charging button animations */
+        .charge-glow {
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+            transition: all 0.2s ease;
+        }
+        .charge-glow:active {
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Energy progress ring */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.1s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Chat dialogue animation */
+        @keyframes bubble-up {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .chat-bubble {
+            animation: bubble-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 </head>
 <body class="relative min-h-screen flex flex-col justify-between">
 
-    <!-- Canvas background for stars -->
     <canvas id="particle-canvas"></canvas>
 
     <!-- Header -->
-    <header class="relative z-10 w-full py-6 px-8 flex justify-between items-center border-b border-purple-950/40 bg-black/20 backdrop-blur-md">
+    <header class="relative z-10 w-full py-5 px-8 flex justify-between items-center border-b border-purple-950/40 bg-black/30 backdrop-blur-md">
         <div class="flex items-center space-x-3">
             <div class="w-10 h-10 rounded-full border border-yellow-500/50 flex items-center justify-center bg-purple-950/30">
                 <i class="fa-solid fa-wand-magic-sparkles text-yellow-400 text-lg animate-pulse"></i>
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-100 to-amber-400 font-serif">宇宙星啟</h1>
-                <p class="text-xs text-purple-300 tracking-widest uppercase">Oracle of Nebula</p>
+                <p class="text-[10px] text-purple-300 tracking-widest uppercase">Oracle of Nebula • 極致互動版</p>
             </div>
         </div>
         
         <!-- Cosmic Sound Toggle -->
         <button id="sound-toggle" onclick="toggleCelestialSound()" class="px-3 py-1.5 rounded-full border border-purple-500/30 text-purple-300 text-xs flex items-center space-x-1.5 hover:bg-purple-950/40 transition">
             <i class="fa-solid fa-volume-xmark" id="sound-icon"></i>
-            <span id="sound-text">靜音</span>
+            <span id="sound-text">開啟靜心磬音</span>
         </button>
     </header>
 
@@ -139,43 +166,58 @@
         <!-- Step Indicator -->
         <div class="w-full max-w-xl mx-auto mb-8">
             <div class="flex justify-between items-center text-xs text-purple-400 uppercase tracking-widest">
-                <span id="step-lbl-1" class="text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1">1. 設定意圖</span>
-                <span id="step-lbl-2" class="opacity-40 transition-all duration-300">2. 靜心抽取</span>
-                <span id="step-lbl-3" class="opacity-40 transition-all duration-300">3. 神啟顯化</span>
+                <span id="step-lbl-1" class="text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1">1. 探求意圖</span>
+                <span id="step-lbl-2" class="opacity-40 transition-all duration-300">2. 凝聚與抽取</span>
+                <span id="step-lbl-3" class="opacity-40 transition-all duration-300">3. 星啟指引</span>
             </div>
         </div>
 
         <!-- STEP 1: Question Input Screen -->
-        <section id="step-1" class="w-full max-w-2xl bg-black/40 border border-purple-500/20 rounded-2xl p-8 md:p-12 backdrop-blur-lg shadow-2xl transition-all duration-500">
-            <div class="text-center mb-8">
-                <span class="text-xs font-semibold uppercase tracking-widest text-yellow-400 bg-yellow-500/10 px-3 py-1 rounded-full">AI 靈性對話</span>
-                <h2 class="text-3xl md:text-4xl font-serif font-semibold mt-4 text-white">對星空傾訴您的疑惑</h2>
-                <p class="text-gray-400 mt-2 text-sm md:text-base">在卡牌被抽起前，請先將思緒凝聚。您想探尋的是事業、愛情，還是人生的轉折指引？</p>
+        <section id="step-1" class="w-full max-w-2xl bg-black/40 border border-purple-500/20 rounded-2xl p-6 md:p-10 backdrop-blur-lg shadow-2xl transition-all duration-500">
+            <div class="text-center mb-6">
+                <span class="text-xs font-semibold uppercase tracking-widest text-yellow-400 bg-yellow-500/10 px-3 py-1 rounded-full">AI 宇宙覺察</span>
+                <h2 class="text-3xl font-serif font-semibold mt-3 text-white">開啟星際智慧對話</h2>
+                <p class="text-gray-400 mt-1.5 text-sm">此時此刻，將思緒放緩。選擇你的解密陣型，對繁星寫下你的迷茫。</p>
             </div>
 
-            <div class="space-y-6">
+            <div class="space-y-5">
+                <!-- Spread Selector Option -->
+                <div class="bg-purple-950/20 border border-purple-500/10 p-4 rounded-xl">
+                    <label class="block text-xs font-semibold text-purple-300 uppercase tracking-wider mb-3">選擇占卜牌陣：</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" id="spread-single" onclick="setSpreadType('single')" class="py-3 px-4 rounded-lg border-2 border-yellow-500 bg-purple-950/40 text-sm text-yellow-200 font-semibold flex flex-col items-center space-y-1 transition duration-300">
+                            <span class="text-base">🌌 單牌指引</span>
+                            <span class="text-[10px] text-purple-400 font-normal">快速獲得核心事件指引</span>
+                        </button>
+                        <button type="button" id="spread-three" onclick="setSpreadType('three')" class="py-3 px-4 rounded-lg border-2 border-purple-500/20 hover:border-yellow-500/40 bg-black/20 text-sm text-purple-300 flex flex-col items-center space-y-1 transition duration-300">
+                            <span class="text-base text-white">⏳ 三牌時間流</span>
+                            <span class="text-[10px] text-purple-400 font-normal">探索：過去根源 ｜ 現在現狀 ｜ 未來啟示</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div>
                     <label for="oracle-question" class="block text-xs font-semibold text-purple-300 uppercase tracking-wider mb-2">請在下方輸入您的具體問題：</label>
                     <textarea id="oracle-question" rows="3" 
-                        class="w-full bg-purple-950/20 border border-purple-500/40 rounded-xl px-4 py-3 text-white placeholder-purple-300/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all text-base"
-                        placeholder="例：我正考慮轉換跑道到新的產業，這對我的長遠生涯發展會帶來什麼樣的契機與挑戰？"></textarea>
+                        class="w-full bg-purple-950/30 border border-purple-500/30 rounded-xl px-4 py-3 text-white placeholder-purple-300/30 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition-all text-base"
+                        placeholder="例：我正考慮在職進修新技能，這對我的長遠生涯發展會帶來什麼樣的契機與改變？"></textarea>
                 </div>
 
                 <!-- Suggestion Chips -->
                 <div>
-                    <span class="text-xs text-purple-400 block mb-2">或者，快速選擇常見意圖：</span>
+                    <span class="text-xs text-purple-400 block mb-2">或者，快速套用常見意圖：</span>
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="fillPresetQuestion('我近期在工作上感到迷茫，未來的事業發展應該如何突破現狀？')" class="text-xs bg-purple-950/40 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition">💼 事業與突破</button>
-                        <button onclick="fillPresetQuestion('我與伴侶/特定對象未來的感情發展，有什麼需要特別注意或學習的課題？')" class="text-xs bg-purple-950/40 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition">❤️ 感情與和諧</button>
-                        <button onclick="fillPresetQuestion('如何在這個月提升我的內在平靜與能量磁場？需要放下什麼？')" class="text-xs bg-purple-950/40 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition">🧘 靈性與能量</button>
+                        <button type="button" onclick="fillPresetQuestion('我近期在工作上感到迷茫，未來的事業發展應該如何突破現狀？')" class="text-xs bg-purple-950/40 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition">💼 事業與突破</button>
+                        <button type="button" onclick="fillPresetQuestion('我與特定對象未來的感情發展，有什麼需要特別注意或學習的課題？')" class="text-xs bg-purple-950/40 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition">❤️ 感情與和諧</button>
+                        <button type="button" onclick="fillPresetQuestion('如何提升我目前的內在能量狀態與身心平靜？需要放下什麼執念？')" class="text-xs bg-purple-950/40 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition">🧘 靈性與能量</button>
                     </div>
                 </div>
 
                 <!-- Start Button -->
-                <div class="pt-4">
-                    <button onclick="proceedToDraw()" class="w-full btn-gold text-purple-950 font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center space-x-2">
-                        <span>開啟星河通道</span>
-                        <i class="fa-solid fa-arrow-right"></i>
+                <div class="pt-2">
+                    <button type="button" onclick="proceedToDraw()" class="w-full btn-gold text-purple-950 font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center space-x-2">
+                        <span>進入凝聚儀式</span>
+                        <i class="fa-solid fa-moon text-sm"></i>
                     </button>
                 </div>
             </div>
@@ -183,95 +225,163 @@
 
         <!-- STEP 2: Card Selecting Screen -->
         <section id="step-2" class="w-full hidden transition-all duration-500 flex flex-col items-center">
-            <div class="text-center mb-8 max-w-lg">
-                <span class="text-xs font-semibold uppercase tracking-widest text-purple-300 bg-purple-500/10 px-3 py-1 rounded-full">抽卡階段</span>
-                <p class="text-gray-400 mt-3 text-sm">您的問題：「<span id="display-question" class="text-yellow-200 italic font-semibold"></span>」</p>
-                <h3 class="text-2xl font-serif text-white mt-2">深呼吸三次，點擊任意卡牌抽取您的神諭</h3>
-                
-                <div class="mt-4 flex justify-center space-x-4">
-                    <button onclick="shuffleDeck()" class="px-4 py-2 bg-purple-950/40 hover:bg-purple-900/40 border border-purple-500/30 rounded-lg text-xs tracking-wider flex items-center space-x-2 transition">
-                        <i class="fa-solid fa-rotate-right" id="shuffle-icon"></i>
-                        <span>重新洗牌</span>
-                    </button>
+            
+            <!-- RITUAL SCREEN: Press and Hold to Charge -->
+            <div id="ritual-charging-zone" class="w-full max-w-md bg-black/50 border border-yellow-500/20 rounded-2xl p-8 text-center backdrop-blur-xl shadow-2xl flex flex-col items-center space-y-6">
+                <div class="text-center">
+                    <span class="text-[10px] font-semibold uppercase tracking-widest text-yellow-400 bg-yellow-500/10 px-3 py-1 rounded-full">啟航前哨儀式</span>
+                    <h3 class="text-xl font-serif text-white mt-4">請將手指放在星徽上凝聚意念</h3>
+                    <p class="text-xs text-purple-300 mt-2 max-w-xs mx-auto leading-relaxed">排除心中雜念，專注在你剛才寫下的問題。點擊並「持續按住」星徽，直到星河完全覺醒。</p>
+                </div>
+
+                <!-- Interactive Hold Ring Button -->
+                <div class="relative w-40 h-40 flex items-center justify-center cursor-pointer select-none" id="charge-btn-area">
+                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 120 120">
+                        <circle class="text-purple-950/50" stroke-width="4" stroke="currentColor" fill="transparent" r="52" cx="60" cy="60"/>
+                        <circle class="text-yellow-400 progress-ring__circle" stroke-width="4" stroke-dasharray="326.7" stroke-dashoffset="326.7" stroke-linecap="round" stroke="currentColor" fill="transparent" r="52" cx="60" cy="60" id="progress-circle"/>
+                    </svg>
+                    
+                    <!-- Pulsing Star inside -->
+                    <div id="charge-button" class="w-28 h-28 rounded-full bg-gradient-to-tr from-purple-900 to-indigo-950 border border-yellow-500/40 flex flex-col items-center justify-center charge-glow transition-all active:scale-95">
+                        <i class="fa-regular fa-star text-3xl text-yellow-400 animate-pulse" id="charge-star-icon"></i>
+                        <span class="text-[10px] text-yellow-200 tracking-wider uppercase mt-1.5 font-bold" id="charge-btn-label">按住充能</span>
+                    </div>
+                </div>
+
+                <div class="w-full bg-purple-950/20 px-4 py-2 rounded-lg border border-purple-500/10 text-center">
+                    <p class="text-xs text-purple-300 italic">" 您的意念將化為引導卡牌磁場的引力波 "</p>
                 </div>
             </div>
 
-            <!-- Card Spread Zone -->
-            <div id="deck-zone" class="w-full max-w-5xl grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 py-6 px-2 justify-center items-center">
-                <!-- Cards will be injected dynamically here -->
+            <!-- CARD DRAW ZONE (Hidden until charge complete) -->
+            <div id="card-selection-zone" class="w-full hidden flex flex-col items-center">
+                <div class="text-center mb-6 max-w-lg">
+                    <span class="text-xs font-semibold uppercase tracking-widest text-purple-300 bg-purple-500/10 px-3 py-1 rounded-full">靜心抽選</span>
+                    <p class="text-gray-400 mt-2.5 text-xs sm:text-sm">您的問題：「<span id="display-question" class="text-yellow-200 italic font-semibold"></span>」</p>
+                    
+                    <!-- Dynamic Spread selection status -->
+                    <h3 id="draw-prompt-title" class="text-xl sm:text-2xl font-serif text-white mt-2">請在下方牌庫中，憑直覺抽選卡牌</h3>
+                    <p id="draw-counter-info" class="text-xs text-yellow-400 font-mono tracking-widest uppercase mt-1">請抽出 1 張卡牌</p>
+                    
+                    <div class="mt-3 flex justify-center space-x-4">
+                        <button type="button" onclick="shuffleDeck()" class="px-4 py-2 bg-purple-950/40 hover:bg-purple-900/40 border border-purple-500/30 rounded-lg text-[11px] tracking-wider flex items-center space-x-2 transition">
+                            <i class="fa-solid fa-rotate-right" id="shuffle-icon"></i>
+                            <span>重新洗牌洗滌能量</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card Spread Zone -->
+                <div id="deck-zone" class="w-full max-w-5xl grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 py-4 px-2 justify-center items-center">
+                    <!-- Cards will be injected dynamically here -->
+                </div>
             </div>
         </section>
 
-        <!-- STEP 3: Oracle Reveal & AI Interpretation Screen -->
-        <section id="step-3" class="w-full max-w-4xl hidden transition-all duration-500">
+        <!-- STEP 3: Oracle Reveal & AI Interpretation Screen (Conversational Diviner Version) -->
+        <section id="step-3" class="w-full max-w-6xl hidden transition-all duration-500">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
-                <!-- Left: The Drawn Card -->
-                <div class="lg:col-span-4 flex flex-col items-center">
-                    <div id="final-card-container" class="card-container w-64 h-96 relative mx-auto mb-6">
-                        <!-- Single Selected Card with Flip Animation -->
-                        <div id="final-card-inner" class="card-inner w-full h-full cursor-pointer relative">
-                            <!-- Back -->
-                            <div class="card-back flex flex-col justify-between p-4">
-                                <div class="border border-yellow-500/20 h-full w-full rounded-lg flex flex-col items-center justify-center relative overflow-hidden">
-                                    <div class="absolute inset-0 bg-[radial-gradient(#1e1548_1px,transparent_1px)] [background-size:16px_16px] opacity-30"></div>
-                                    <i class="fa-regular fa-compass text-4xl text-yellow-500/40 animate-spin" style="animation-duration: 20s"></i>
-                                </div>
-                            </div>
-                            <!-- Front -->
-                            <div id="final-card-front" class="card-front p-4 flex flex-col justify-between">
-                                <!-- Dynamically replaced in JS -->
-                            </div>
-                        </div>
+                <!-- Left Column: Selected Cards Display -->
+                <div class="lg:col-span-5 flex flex-col items-center">
+                    
+                    <!-- Cards layout frame container -->
+                    <div id="drawn-cards-result-container" class="w-full flex flex-wrap justify-center gap-4 py-4">
+                        <!-- Dynamically filled with selected card components in 3D -->
                     </div>
 
                     <!-- Action items under the card -->
-                    <div class="flex flex-col space-y-3 w-64">
-                        <button id="tts-btn" onclick="readOracleText()" class="hidden w-full bg-purple-950/60 hover:bg-purple-900/60 border border-yellow-500/40 hover:border-yellow-500 rounded-xl py-3 px-4 text-xs font-semibold text-yellow-200 transition-all flex items-center justify-center space-x-2">
+                    <div class="flex flex-col space-y-3 w-full max-w-sm mt-4">
+                        <button type="button" id="tts-btn" onclick="readOracleText()" class="hidden w-full bg-purple-950/60 hover:bg-purple-900/60 border border-yellow-500/40 hover:border-yellow-500 rounded-xl py-3.5 px-4 text-xs font-semibold text-yellow-200 transition-all flex items-center justify-center space-x-2">
                             <i class="fa-solid fa-microphone-lines animate-pulse text-yellow-400"></i>
-                            <span id="tts-btn-text">聆聽星空神諭 (Voice)</span>
+                            <span id="tts-btn-text">聆聽大祭司指引 (Voice)</span>
                         </button>
-                        <button onclick="downloadReport()" class="w-full bg-black/40 hover:bg-black/60 border border-purple-500/30 hover:border-purple-500/60 rounded-xl py-3 px-4 text-xs font-semibold text-purple-300 transition-all flex items-center justify-center space-x-2">
+                        <button type="button" onclick="downloadReport()" class="w-full bg-black/40 hover:bg-black/60 border border-purple-500/30 hover:border-purple-500/60 rounded-xl py-3 px-4 text-xs font-semibold text-purple-300 transition-all flex items-center justify-center space-x-2">
                             <i class="fa-solid fa-download"></i>
-                            <span>下載本次神諭圖文</span>
+                            <span>下載大祭司開示報告</span>
                         </button>
-                        <button onclick="restartOracle()" class="w-full bg-purple-950/20 hover:bg-purple-950/40 border border-purple-500/10 rounded-xl py-3 px-4 text-xs text-gray-400 transition flex items-center justify-center space-x-2">
+                        <button type="button" onclick="restartOracle()" class="w-full bg-purple-950/20 hover:bg-purple-950/40 border border-purple-500/10 rounded-xl py-3 px-4 text-xs text-gray-400 transition flex items-center justify-center space-x-2">
                             <i class="fa-solid fa-reply"></i>
-                            <span>重回凡世 / 再次問卜</span>
+                            <span>心懷感謝 / 再次尋求開示</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Right: AI Guidance Panel -->
-                <div class="lg:col-span-8 bg-black/40 border border-purple-500/20 rounded-2xl p-6 md:p-8 backdrop-blur-lg flex flex-col min-h-[400px]">
+                <!-- Right Column: Interactive Priestess Dialogue Panel -->
+                <div class="lg:col-span-7 bg-black/60 border border-purple-500/20 rounded-2xl p-5 md:p-7 backdrop-blur-xl flex flex-col min-h-[550px] shadow-2xl relative overflow-hidden">
                     
-                    <!-- Card Quick Summary Header -->
-                    <div class="border-b border-purple-950/60 pb-4 mb-6">
-                        <span class="text-xs text-yellow-400 tracking-wider font-semibold">您抽到了</span>
-                        <h3 id="result-card-title" class="text-2xl font-serif text-white mt-1">【卡牌載入中】</h3>
-                        <p id="result-card-keywords" class="text-sm text-purple-300 mt-1 italic">關鍵字：---</p>
+                    <!-- Diviner Profile Header -->
+                    <div class="flex items-center space-x-4 border-b border-purple-950/60 pb-4 mb-5">
+                        <div class="relative">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-yellow-500 via-purple-600 to-indigo-500 p-0.5 animate-pulse">
+                                <div class="w-full h-full rounded-full bg-slate-950 flex items-center justify-center border border-yellow-500/20">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-yellow-400 text-xl"></i>
+                                </div>
+                            </div>
+                            <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-yellow-500 border-2 border-black rounded-full shadow-inner animate-ping" style="animation-duration: 2.5s"></span>
+                            <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-yellow-400 border-2 border-black rounded-full shadow"></span>
+                        </div>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs text-yellow-400 font-semibold tracking-widest uppercase">星宿大祭司</span>
+                                <span class="text-[9px] bg-yellow-500/10 text-yellow-300 px-1.5 py-0.5 rounded-full border border-yellow-500/20">線上靈魂連結</span>
+                            </div>
+                            <h3 class="text-lg font-serif text-white font-medium">賽莉絲蒂亞 <span class="text-xs text-purple-300 font-sans">Celestia</span></h3>
+                        </div>
                     </div>
 
-                    <!-- AI Streaming/Output Area -->
-                    <div class="flex-grow flex flex-col">
-                        <!-- Loading State -->
-                        <div id="ai-loading" class="flex flex-col items-center justify-center py-12 space-y-4">
-                            <div class="relative w-16 h-16">
+                    <!-- Chat dialogue box history (Scrollable) -->
+                    <div id="chat-scroller" class="flex-grow overflow-y-auto max-h-[350px] space-y-4 pr-2 pb-4 flex flex-col">
+                        
+                        <!-- Initial System/Diviner setup bubble -->
+                        <div class="chat-bubble flex space-x-3 items-start">
+                            <div class="w-8 h-8 rounded-full bg-purple-950 border border-purple-500/30 flex items-center justify-center text-purple-300 flex-shrink-0 text-xs font-serif">C</div>
+                            <div class="bg-purple-950/30 border border-purple-500/10 rounded-2xl rounded-tl-none p-3.5 max-w-[85%] text-xs text-purple-200 leading-relaxed">
+                                歡迎來到星宇秘境，尋路人。我已接收到你在星際徽章中注入的意念磁場。請稍候，我正以靈性共振，為你解讀命運的伏流與微光...
+                            </div>
+                        </div>
+
+                        <!-- Main Reading loaded here dynamically (replaces loading look) -->
+                        <div id="ai-loading" class="flex flex-col items-center justify-center py-10 space-y-3">
+                            <div class="relative w-12 h-12">
                                 <div class="absolute inset-0 rounded-full border-4 border-purple-500/20"></div>
                                 <div class="absolute inset-0 rounded-full border-4 border-t-yellow-400 animate-spin"></div>
-                                <div class="absolute inset-3 rounded-full border-2 border-b-purple-400 animate-ping" style="animation-duration: 2s"></div>
                             </div>
-                            <div class="text-center">
-                                <p class="text-sm font-semibold text-yellow-100 font-serif">宇宙意識連結中...</p>
-                                <p id="loading-tip" class="text-xs text-gray-400 mt-1 max-w-sm">正在透過高維度通道為您的疑惑進行演繹解碼</p>
-                            </div>
+                            <p class="text-xs text-purple-300 font-serif italic animate-pulse">大祭司正與星河共鳴中...</p>
                         </div>
 
-                        <!-- Content Area -->
-                        <div id="ai-content-box" class="hidden text-gray-200 space-y-6 leading-relaxed text-sm md:text-base">
-                            <!-- Interpretation paragraphs injected dynamically -->
+                        <div id="dynamic-chat-content" class="space-y-4">
+                            <!-- Messages will flow here -->
+                        </div>
+
+                    </div>
+
+                    <!-- Interactive Dialogue reply section (Hidden until initial reading loaded) -->
+                    <div id="followup-chat-panel" class="hidden border-t border-purple-950/60 pt-4 mt-auto">
+                        <p class="text-xs md:text-sm text-purple-300 mb-2.5 flex items-center space-x-1">
+                            <i class="fa-regular fa-comment-dots text-yellow-400/80"></i>
+                            <span>尋路人，你可以繼續深入向我追問，或選擇下方的直覺引導：</span>
+                        </p>
+                        
+                        <!-- Auto guidance chips -->
+                        <div class="flex flex-wrap gap-2 mb-3.5">
+                            <button type="button" onclick="sendQuickFollowup('這張牌卡是在提醒我，目前的困局中放下什麼執念或潛意識盲點？')" class="text-xs md:text-sm bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-2 rounded-lg text-purple-200 transition">🔍 提醒我放下什麼盲點？</button>
+                            <button type="button" onclick="sendQuickFollowup('如果這是我當下靈魂的考驗，我該用什麼樣的新視角或心態去轉化它？')" class="text-xs md:text-sm bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-2 rounded-lg text-purple-200 transition">🧘 我該用什麼心態轉化？</button>
+                            <button type="button" onclick="sendQuickFollowup('請給我一個最實用、最容易在日常生活中落實的具體第一步。')" class="text-xs md:text-sm bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-2 rounded-lg text-purple-200 transition">🌱 給我落實的第一步建議</button>
+                        </div>
+
+                        <!-- Typing input area -->
+                        <div class="relative flex items-center">
+                            <textarea id="followup-input" rows="1" 
+                                class="w-full bg-purple-950/30 border border-purple-500/30 rounded-xl pl-4 pr-12 py-3 text-white placeholder-purple-300/30 focus:outline-none focus:ring-2 focus:ring-yellow-500/40 transition-all text-sm md:text-base resize-none" 
+                                placeholder="對大祭司 Celestia 進一步述說您的困惑與感受..."
+                                onkeydown="handleChatKey(event)"></textarea>
+                            <button type="button" id="send-chat-btn" onclick="submitFollowup()" class="absolute right-2 top-2 w-8 h-8 rounded-lg bg-yellow-500/20 hover:bg-yellow-500 text-yellow-300 hover:text-purple-950 transition flex items-center justify-center">
+                                <i class="fa-solid fa-paper-plane text-xs"></i>
+                            </button>
                         </div>
                     </div>
+
                 </div>
 
             </div>
@@ -280,9 +390,9 @@
     </main>
 
     <!-- Footer -->
-    <footer class="relative z-10 w-full py-6 text-center text-xs text-purple-400/60 border-t border-purple-950/20 bg-black/40 backdrop-blur-sm">
-        <p>© 2026 宇宙星啟 Oracle of Nebula. 由 Gemini-3.1-Flash 提供神諭指引與語音演繹.</p>
-        <p class="mt-1">靈性啟發非絕對科學預測，請保持自由意志與覺察。</p>
+    <footer class="relative z-10 w-full py-5 text-center text-xs text-purple-400/60 border-t border-purple-950/20 bg-black/40 backdrop-blur-sm">
+        <p>© 2026 宇宙星啟 Oracle of Nebula. 由 Gemini-2.5-Flash 與先進互動式引擎提供神臨指引。</p>
+        <p class="mt-1">靈性啟發非決定論，在物理宇宙中，你永遠擁有人生選擇的自主權。</p>
     </footer>
 
     <!-- Audio Player (hidden) -->
@@ -292,130 +402,41 @@
     <script>
         // Oracle Deck Definition
         const ORACLE_DECK = [
-            {
-                id: 1,
-                title: "星際啟航",
-                keywords: "探索 ｜ 勇氣 ｜ 全新旅程",
-                description: "象徵踏入完全未知的領域，拋開過往的思維模式。宇宙正在召喚您展開新世界，不要害怕跨出舒適圈。",
-                gradient: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%)",
-                icon: "fa-regular fa-paper-plane",
-                color: "blue"
-            },
-            {
-                id: 2,
-                title: "深海靜默",
-                keywords: "內省 ｜ 智慧 ｜ 保持耐心",
-                description: "當下不宜急躁推進，而需像深海一般沉澱。在萬籟俱寂的內在自我中，能找到解決現實阻礙的核心智慧。",
-                gradient: "linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%)",
-                icon: "fa-solid fa-water",
-                color: "darkblue"
-            },
-            {
-                id: 3,
-                title: "鳳凰浴火",
-                keywords: "蛻變 ｜ 重生 ｜ 意志淬鍊",
-                description: "一段舊關係、舊信念或模式的消逝，是為了騰出嶄新生命的空間。浴火過後的您，將具備前所未有的強大生命力。",
-                gradient: "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #f59e0b 100%)",
-                icon: "fa-solid fa-fire-flame-curved",
-                color: "red"
-            },
-            {
-                id: 4,
-                title: "大地根基",
-                keywords: "穩定 ｜ 養分 ｜ 扎根實踐",
-                description: "檢視您的現實基底。無論是財務、身體健康或是具體計畫，都需要一步一腳印、穩紮穩打地築巢，不宜好高鶩遠。",
-                gradient: "linear-gradient(135deg, #1c1917 0%, #44403c 50%, #78716c 100%)",
-                icon: "fa-solid fa-mountain",
-                color: "earth"
-            },
-            {
-                id: 5,
-                title: "月影微光",
-                keywords: "直覺 ｜ 潛意識 ｜ 迷霧探索",
-                description: "理性無法解釋所有的事物，相信您那敏銳的直覺與夢境預示。有些真相正隱藏在陰暗面中，需要用溫柔的感知去揭開。",
-                gradient: "linear-gradient(135deg, #2e1065 0%, #581c87 50%, #d8b4fe 100%)",
-                icon: "fa-regular fa-moon",
-                color: "purple"
-            },
-            {
-                id: 6,
-                title: "烈陽真火",
-                keywords: "生命力 ｜ 顯化 ｜ 成功在望",
-                description: "無比的光明與正面能量正匯聚於此。您的想法有極高的實踐可能，盡情展現熱情與自信，您的光芒將照耀周遭的夥伴。",
-                gradient: "linear-gradient(135deg, #ea580c 0%, #facc15 50%, #fef08a 100%)",
-                icon: "fa-regular fa-sun",
-                color: "yellow"
-            },
-            {
-                id: 7,
-                title: "命運之輪",
-                keywords: "周期 ｜ 變革 ｜ 順應時勢",
-                description: "生命中有些不可逆轉的巨大輪轉正在發生。學會隨風起舞，而非執著抵抗。接受無常，才能找到生命最完美的平衡點。",
-                gradient: "linear-gradient(135deg, #065f46 0%, #059669 50%, #6ee7b7 100%)",
-                icon: "fa-solid fa-arrows-spin",
-                color: "green"
-            },
-            {
-                id: 8,
-                title: "微風耳語",
-                keywords: "溝通 ｜ 靈活 ｜ 資訊傳遞",
-                description: "多加留意突如其來的消息、或是他人偶然的提議。保持像風一般的流動性，切忌固步自封。良善的溝通是當前的解方。",
-                gradient: "linear-gradient(135deg, #115e59 0%, #14b8a6 50%, #99f6e4 100%)",
-                icon: "fa-solid fa-wind",
-                color: "teal"
-            },
-            {
-                id: 9,
-                title: "心靈之泉",
-                keywords: "治癒 ｜ 愛 ｜ 豐盛感知",
-                description: "這是一張極具情感滋養的牌，象徵關係修復或自我接納。給予自己一些溫柔的呵護與原諒，您內在的愛能化解所有防備。",
-                gradient: "linear-gradient(135deg, #0369a1 0%, #0ea5e9 50%, #bae6fd 100%)",
-                icon: "fa-solid fa-droplet",
-                color: "lightblue"
-            },
-            {
-                id: 10,
-                title: "真理之鑰",
-                keywords: "啟示 ｜ 頓悟 ｜ 真實核心",
-                description: "迷霧終將散去，一場重要的頓悟即將到來。看清事物的本質而非表面包裝。這張牌要求您對自己與他人保持絕對的誠實。",
-                gradient: "linear-gradient(135deg, #854d0e 0%, #ca8a04 50%, #fef9c3 100%)",
-                icon: "fa-solid fa-key",
-                color: "gold"
-            },
-            {
-                id: 11,
-                title: "守護之翼",
-                keywords: "保護 ｜ 引導 ｜ 靈魂守護者",
-                description: "您並非孤身奮戰。不論遭遇怎樣的考驗，宇宙溫和慈悲的力量始終圍繞在您身旁。保持信念，放下所有不必要的擔憂。",
-                gradient: "linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #c7d2fe 100%)",
-                icon: "fa-solid fa-feather",
-                color: "indigo"
-            },
-            {
-                id: 12,
-                title: "幻影迷霧",
-                keywords: "破除幻象 ｜ 覺察 ｜ 自我抉擇",
-                description: "眼前的困境或誘惑，可能只是自我想像力的投射。停止過度解讀或自我質疑，用清晰澄澈的雙眼，重新聚焦您真正的渴望。",
-                gradient: "linear-gradient(135deg, #500724 0%, #831843 50%, #fbcfe8 100%)",
-                icon: "fa-solid fa-cloud-sun",
-                color: "pink"
-            }
+            { id: 1, title: "星際啟航", keywords: "探索 ｜ 勇氣 ｜ 全新旅程", description: "象徵踏入完全未知的領域，拋開過往的思維模式。宇宙正在召喚您展開新世界，不要害怕跨出舒適圈。", gradient: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%)", icon: "fa-regular fa-paper-plane", color: "blue" },
+            { id: 2, title: "深海靜默", keywords: "內省 ｜ 智慧 ｜ 保持耐心", description: "當下不宜急躁推進，而需像深海一般沉澱。在萬籟俱寂的內在自我中，能找到解決現實阻礙的核心智慧。", gradient: "linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%)", icon: "fa-solid fa-water", color: "darkblue" },
+            { id: 3, title: "鳳凰浴火", keywords: "蛻變 ｜ 重生 ｜ 意志淬鍊", description: "一段舊關係、舊信念或模式的消逝，是為了騰出嶄新生命的空間。浴火過後的您，將具備前所未有的強大生命力。", gradient: "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #f59e0b 100%)", icon: "fa-solid fa-fire-flame-curved", color: "red" },
+            { id: 4, title: "大地根基", keywords: "穩定 ｜ 養分 ｜ 扎根實踐", description: "檢視您的現實基底。無論是財務、身體健康或是具體計畫，都需要一步一腳印、穩紮穩打地築巢，不宜好高鶩遠。", gradient: "linear-gradient(135deg, #1c1917 0%, #44403c 50%, #78716c 100%)", icon: "fa-solid fa-mountain", color: "earth" },
+            { id: 5, title: "月影微光", keywords: "直覺 ｜ 潛意識 ｜ 迷霧探索", description: "理性無法解釋所有的事物，相信您那敏銳的直覺與夢境預示。有些真相正隱藏在陰暗面中，需要用溫柔的感知去揭開。", gradient: "linear-gradient(135deg, #2e1065 0%, #581c87 50%, #d8b4fe 100%)", icon: "fa-regular fa-moon", color: "purple" },
+            { id: 6, title: "烈陽真火", keywords: "生命力 ｜ 顯化 ｜ 成功在望", description: "無比的光明與正面能量正匯聚於此。您的想法有極高的實踐可能，盡情展現熱情與自信，您的光芒將照耀周遭的夥伴。", gradient: "linear-gradient(135deg, #ea580c 0%, #facc15 50%, #fef08a 100%)", icon: "fa-regular fa-sun", color: "yellow" },
+            { id: 7, title: "命運之輪", keywords: "周期 ｜ 變革 ｜ 順應時勢", description: "生命中有些不可逆轉的巨大輪轉正在發生。學會隨風起舞，而非執著抵抗。接受無常，才能找到生命最完美的平衡點。", gradient: "linear-gradient(135deg, #065f46 0%, #059669 50%, #6ee7b7 100%)", icon: "fa-solid fa-arrows-spin", color: "green" },
+            { id: 8, title: "微風耳語", keywords: "溝通 ｜ 靈活 ｜ 資訊傳遞", description: "多加留意突如其來的消息、或是他人偶然的提議。保持像風一般的流動性，切忌固步自封。良善的溝通是當前的解方。", gradient: "linear-gradient(135deg, #115e59 0%, #14b8a6 50%, #99f6e4 100%)", icon: "fa-solid fa-wind", color: "teal" },
+            { id: 9, title: "心靈之泉", keywords: "治癒 ｜ 愛 ｜ 豐盛感知", description: "這是一張極具情感滋養的牌，象徵關係修復或自我接納。給予自己一些溫柔的呵護與原諒，您內在的愛能化解所有防備。", gradient: "linear-gradient(135deg, #0369a1 0%, #0ea5e9 50%, #bae6fd 100%)", icon: "fa-solid fa-droplet", color: "lightblue" },
+            { id: 10, title: "真理之鑰", keywords: "啟示 ｜ 頓悟 ｜ 真實核心", description: "迷霧終將散去，一場重要的頓悟即將到來。看清事物的本質而非表面包裝。這張牌要求您對自己與他人保持絕對的誠實。", gradient: "linear-gradient(135deg, #854d0e 0%, #ca8a04 50%, #fef9c3 100%)", icon: "fa-solid fa-key", color: "gold" },
+            { id: 11, title: "守護之翼", keywords: "保護 ｜ 引導 ｜ 靈魂守護者", description: "您並非孤身奮戰。不論遭遇怎樣的考驗，宇宙溫和慈悲的力量始終圍繞在您身旁。保持信念，放下所有不必要的擔憂。", gradient: "linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #c7d2fe 100%)", icon: "fa-solid fa-feather", color: "indigo" },
+            { id: 12, title: "幻影迷霧", keywords: "破除幻象 ｜ 覺察 ｜ 自我抉擇", description: "眼前的困境或誘惑，可能只是自我想像力的投射。停止過度解讀或自我質疑，用清晰澄澈的雙眼，重新聚焦您真正的渴望。", gradient: "linear-gradient(135deg, #500724 0%, #831843 50%, #fbcfe8 100%)", icon: "fa-solid fa-cloud-sun", color: "pink" }
         ];
 
         // State variables
         let selectedQuestion = "";
-        let drawnCard = null;
+        let spreadType = "single"; // 'single' or 'three'
+        let drawnCards = []; // Store multiple drawn cards
         let isSoundPlaying = false;
         let audioCtx = null;
         let ambientOscillator = null;
         let ambientGainNode = null;
-        let apiReadingText = ""; // Holds the parsed output text
+        let apiReadingText = ""; 
+        let dialogHistory = []; // Conversation threads for continuous dialogue
 
-        // Particle Background Logic
+        // Touch & mouse particles state
         const canvas = document.getElementById('particle-canvas');
         const ctx = canvas.getContext('2d');
-        let particles = [];
+        let ambientParticles = [];
+        let cursorParticles = [];
+        let mouseX = 0;
+        let mouseY = 0;
+        let isMouseInWindow = false;
 
+        // Custom responsive sizes
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -423,7 +444,8 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        class Particle {
+        // Standard Ambient Space Particle
+        class AmbientParticle {
             constructor() {
                 this.reset();
             }
@@ -431,75 +453,169 @@
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
                 this.size = Math.random() * 1.5 + 0.5;
-                this.speedX = Math.random() * 0.2 - 0.1;
-                this.speedY = Math.random() * 0.2 - 0.1;
-                this.color = `rgba(${200 + Math.floor(Math.random() * 55)}, ${180 + Math.floor(Math.random() * 75)}, 255, ${Math.random() * 0.4 + 0.1})`;
+                this.speedX = Math.random() * 0.15 - 0.075;
+                this.speedY = Math.random() * 0.15 - 0.075;
+                this.opacity = Math.random() * 0.5 + 0.1;
+                this.pulseDir = Math.random() > 0.5 ? 0.005 : -0.005;
             }
             update() {
                 this.x += this.speedX;
                 this.y += this.speedY;
+                
+                // Breath-like pulsing
+                this.opacity += this.pulseDir;
+                if (this.opacity > 0.75 || this.opacity < 0.1) {
+                    this.pulseDir = -this.pulseDir;
+                }
+
                 if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
                     this.reset();
                 }
             }
             draw() {
-                ctx.fillStyle = this.color;
+                ctx.fillStyle = `rgba(212, 175, 55, ${this.opacity})`;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
 
-        // Initialize particles
-        for (let i = 0; i < 80; i++) {
-            particles.push(new Particle());
+        // Mouse Trail Particle (Interactive Star Dust)
+        class CursorSparkle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = (Math.random() - 0.5) * 2;
+                this.life = 1.0; // Decay factor
+                this.decay = Math.random() * 0.02 + 0.015;
+                this.colorHue = Math.random() > 0.5 ? 45 : 275; // Gold (45) or Royal Violet (275)
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctx.shadowBlur = this.size * 3;
+                ctx.shadowColor = `hsla(${this.colorHue}, 80%, 65%, ${this.life})`;
+                ctx.fillStyle = `hsla(${this.colorHue}, 90%, 75%, ${this.life})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
         }
 
+        // Initialize background ambient particles
+        for (let i = 0; i < 60; i++) {
+            ambientParticles.push(new AmbientParticle());
+        }
+
+        // Handle Mouse Events for Interactive Star Dust
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            isMouseInWindow = true;
+            
+            if (Math.random() > 0.3) {
+                cursorParticles.push(new CursorSparkle(mouseX, mouseY));
+            }
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                const touch = e.touches[0];
+                mouseX = touch.clientX;
+                mouseY = touch.clientY;
+                cursorParticles.push(new CursorSparkle(mouseX, mouseY));
+            }
+        });
+
+        window.addEventListener('mouseleave', () => {
+            isMouseInWindow = false;
+        });
+
+        // Combined particle loop
         function animateParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
+            
+            ambientParticles.forEach(p => {
                 p.update();
                 p.draw();
             });
+
+            for (let i = cursorParticles.length - 1; i >= 0; i--) {
+                const sp = cursorParticles[i];
+                sp.update();
+                if (sp.life <= 0) {
+                    cursorParticles.splice(i, 1);
+                } else {
+                    sp.draw();
+                }
+            }
+            
             requestAnimationFrame(animateParticles);
         }
         animateParticles();
 
-        // Procedural Audio Engine for Mystical Ambient Sound
+        // Procedural Audio Engine for Ambient Space Sound
         function initAudio() {
             if (audioCtx) return;
             try {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 
-                // Low drone base
                 ambientOscillator = audioCtx.createOscillator();
                 ambientOscillator.type = 'sine';
-                ambientOscillator.frequency.value = 110; // A2 note, deep and grounding
+                ambientOscillator.frequency.value = 100;
 
-                // Gentle filter to soften it
                 const filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.value = 400;
+                filter.frequency.value = 350;
 
                 ambientGainNode = audioCtx.createGain();
-                ambientGainNode.gain.setValueAtTime(0, audioCtx.currentTime); // start silent
+                ambientGainNode.gain.setValueAtTime(0, audioCtx.currentTime);
 
                 ambientOscillator.connect(filter);
                 filter.connect(ambientGainNode);
                 ambientGainNode.connect(audioCtx.destination);
 
-                // Add a very subtle slow modulation for standard mystic drone
                 const lfo = audioCtx.createOscillator();
-                lfo.frequency.value = 0.15; // super slow
+                lfo.frequency.value = 0.08;
                 const lfoGain = audioCtx.createGain();
-                lfoGain.gain.value = 15;
+                lfoGain.gain.value = 8;
                 lfo.connect(lfoGain);
                 lfoGain.connect(ambientOscillator.frequency);
 
                 lfo.start();
                 ambientOscillator.start();
             } catch (err) {
-                console.warn('Web Audio API not supported or blocked:', err);
+                console.warn('Audio contextual flow blocked:', err);
+            }
+        }
+
+        function playChime(freq, type = 'sine', duration = 0.5) {
+            if (!audioCtx) initAudio();
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {
+                console.warn(e);
             }
         }
 
@@ -514,21 +630,38 @@
             }
 
             if (!isSoundPlaying) {
-                // Fade in
                 ambientGainNode.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 2.0);
-                btnText.textContent = "星音伴隨";
+                btnText.textContent = "星音環繞中";
                 btnIcon.className = "fa-solid fa-volume-high text-yellow-400";
                 isSoundPlaying = true;
             } else {
-                // Fade out
                 ambientGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
-                btnText.textContent = "靜音";
+                btnText.textContent = "開啟靜心磬音";
                 btnIcon.className = "fa-solid fa-volume-xmark";
                 isSoundPlaying = false;
             }
         }
 
-        // Navigation / Setup Flow helpers
+        // Change card spread types dynamically
+        function setSpreadType(type) {
+            spreadType = type;
+            const singleBtn = document.getElementById('spread-single');
+            const threeBtn = document.getElementById('spread-three');
+
+            if (type === 'single') {
+                singleBtn.className = "py-3 px-4 rounded-lg border-2 border-yellow-500 bg-purple-950/40 text-sm text-yellow-200 font-semibold flex flex-col items-center space-y-1 transition duration-300";
+                threeBtn.className = "py-3 px-4 rounded-lg border-2 border-purple-500/20 hover:border-yellow-500/40 bg-black/20 text-sm text-purple-300 flex flex-col items-center space-y-1 transition duration-300";
+                singleBtn.querySelector('span:first-child').className = "text-base text-yellow-200";
+                threeBtn.querySelector('span:first-child').className = "text-base text-white";
+            } else {
+                threeBtn.className = "py-3 px-4 rounded-lg border-2 border-yellow-500 bg-purple-950/40 text-sm text-yellow-200 font-semibold flex flex-col items-center space-y-1 transition duration-300";
+                singleBtn.className = "py-3 px-4 rounded-lg border-2 border-purple-500/20 hover:border-yellow-500/40 bg-black/20 text-sm text-purple-300 flex flex-col items-center space-y-1 transition duration-300";
+                threeBtn.querySelector('span:first-child').className = "text-base text-yellow-200";
+                singleBtn.querySelector('span:first-child').className = "text-base text-white";
+            }
+        }
+
+        // UI navigation helpers
         function fillPresetQuestion(txt) {
             document.getElementById('oracle-question').value = txt;
         }
@@ -536,52 +669,152 @@
         function proceedToDraw() {
             const inputVal = document.getElementById('oracle-question').value.trim();
             if (!inputVal) {
-                alert("請向神諭傾訴您心中的問題或指引方向，以便連結相應的能量。");
+                alert("請先對神諭傾訴您心中的問題或指引方向。");
                 return;
             }
             selectedQuestion = inputVal;
             document.getElementById('display-question').textContent = selectedQuestion;
             
-            // UI Transition Step 1 -> Step 2
+            const counterInfo = document.getElementById('draw-counter-info');
+            if (spreadType === 'single') {
+                counterInfo.textContent = "請抽 出 1 張 靈 魂 指 引 卡";
+            } else {
+                counterInfo.textContent = "請依序抽出 3 張卡牌（1.過去、2.現在、3.未來）";
+            }
+
             document.getElementById('step-1').classList.add('hidden');
             document.getElementById('step-2').classList.remove('hidden');
             
-            // Steps Progress Indicator
             document.getElementById('step-lbl-1').className = "opacity-40 transition-all";
             document.getElementById('step-lbl-2').className = "text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1";
 
-            // Initialize Card Deck UI
-            buildDeckSpread();
-            
-            // Try to gently suggest audio activation if not playing
-            if (!isSoundPlaying) {
-                setTimeout(() => {
-                    initAudio();
-                }, 500);
-            }
+            setupChargingRitual();
         }
 
-        // Build the physical layout of oracle cards
+        let chargeInterval = null;
+        let chargePercentage = 0;
+        let isCharging = false;
+
+        function setupChargingRitual() {
+            document.getElementById('ritual-charging-zone').classList.remove('hidden');
+            document.getElementById('card-selection-zone').classList.add('hidden');
+
+            const chargeBtn = document.getElementById('charge-button');
+            const progressCircle = document.getElementById('progress-circle');
+            const circumference = 2 * Math.PI * 52;
+
+            const startEvent = (e) => {
+                e.preventDefault();
+                if (isCharging) return;
+                isCharging = true;
+                
+                playChime(150, 'sawtooth', 0.1);
+
+                chargeInterval = setInterval(() => {
+                    if (chargePercentage < 100) {
+                        chargePercentage += 2;
+                        
+                        const offset = circumference - (chargePercentage / 100) * circumference;
+                        progressCircle.style.strokeDashoffset = offset;
+                        
+                        document.getElementById('charge-star-icon').style.transform = `scale(${1 + (chargePercentage/200)})`;
+                        document.getElementById('charge-btn-label').textContent = `凝聚 ${chargePercentage}%`;
+                        
+                        if (audioCtx && ambientOscillator) {
+                            ambientOscillator.frequency.setValueAtTime(100 + (chargePercentage * 1.5), audioCtx.currentTime);
+                        }
+
+                        for (let k = 0; k < 2; k++) {
+                            const rect = chargeBtn.getBoundingClientRect();
+                            cursorParticles.push(new CursorSparkle(
+                                rect.left + rect.width/2 + (Math.random() - 0.5) * 60,
+                                rect.top + rect.height/2 + (Math.random() - 0.5) * 60
+                            ));
+                        }
+                    } else {
+                        clearInterval(chargeInterval);
+                        triggerCosmicActivation();
+                    }
+                }, 30);
+            };
+
+            const endEvent = () => {
+                if (!isCharging) return;
+                isCharging = false;
+                clearInterval(chargeInterval);
+                
+                if (audioCtx && ambientOscillator) {
+                    ambientOscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 1.0);
+                }
+
+                if (chargePercentage < 100) {
+                    const cooldown = setInterval(() => {
+                        if (chargePercentage > 0) {
+                            chargePercentage -= 5;
+                            if (chargePercentage < 0) chargePercentage = 0;
+                            const offset = circumference - (chargePercentage / 100) * circumference;
+                            progressCircle.style.strokeDashoffset = offset;
+                            document.getElementById('charge-btn-label').textContent = "按住充能";
+                        } else {
+                            clearInterval(cooldown);
+                        }
+                    }, 40);
+                }
+            };
+
+            const triggerArea = document.getElementById('charge-btn-area');
+            triggerArea.addEventListener('mousedown', startEvent);
+            triggerArea.addEventListener('mouseup', endEvent);
+            triggerArea.addEventListener('mouseleave', endEvent);
+            
+            triggerArea.addEventListener('touchstart', startEvent, {passive: false});
+            triggerArea.addEventListener('touchend', endEvent);
+        }
+
+        function triggerCosmicActivation() {
+            playChime(329.63, 'sine', 0.6);
+            playChime(392.00, 'sine', 0.8);
+            playChime(523.25, 'sine', 1.0);
+            playChime(659.25, 'triangle', 1.2);
+
+            if (audioCtx && ambientOscillator) {
+                ambientOscillator.frequency.setValueAtTime(110, audioCtx.currentTime);
+            }
+
+            const triggerArea = document.getElementById('charge-btn-area');
+            const rect = triggerArea.getBoundingClientRect();
+            for (let i = 0; i < 40; i++) {
+                cursorParticles.push(new CursorSparkle(
+                    rect.left + rect.width/2 + (Math.random() - 0.5) * 100,
+                    rect.top + rect.height/2 + (Math.random() - 0.5) * 100
+                ));
+            }
+
+            document.getElementById('ritual-charging-zone').classList.add('hidden');
+            document.getElementById('card-selection-zone').classList.remove('hidden');
+
+            buildDeckSpread();
+        }
+
         function buildDeckSpread() {
             const deckZone = document.getElementById('deck-zone');
             deckZone.innerHTML = '';
             
-            // Shuffle original array first to randomize placement
             const shuffled = [...ORACLE_DECK].sort(() => Math.random() - 0.5);
 
             shuffled.forEach((card, idx) => {
                 const container = document.createElement('div');
-                container.className = "card-container w-full aspect-[2/3] max-w-[150px] mx-auto shuffling-card cursor-pointer";
+                container.className = "card-container w-full aspect-[2/3] max-w-[130px] mx-auto shuffling-card cursor-pointer";
                 container.setAttribute('onclick', `drawThisCard(${card.id}, this)`);
                 container.style.opacity = '0';
-                container.style.transform = 'translateY(20px)';
+                container.style.transform = 'translateY(30px)';
 
                 container.innerHTML = `
                     <div class="card-inner w-full h-full relative" style="transform-style: preserve-3d; transition: transform 0.6s;">
-                        <div class="card-back absolute inset-0 w-full h-full rounded-xl border border-yellow-500/20 flex flex-col justify-between p-3">
-                            <div class="border border-yellow-500/10 h-full w-full rounded-lg flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-indigo-950/40 to-slate-950/60">
-                                <div class="absolute inset-0 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:12px_12px] opacity-10"></div>
-                                <i class="fa-regular fa-sun text-yellow-500/30 text-lg sm:text-2xl animate-spin" style="animation-duration: 35s"></i>
+                        <div class="card-back absolute inset-0 w-full h-full rounded-xl border border-yellow-500/25 flex flex-col justify-between p-2.5">
+                            <div class="border border-yellow-500/10 h-full w-full rounded-lg flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-indigo-950/50 to-slate-950/80">
+                                <div class="absolute inset-0 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:10px_10px] opacity-15"></div>
+                                <i class="fa-regular fa-compass text-yellow-500/30 text-xl animate-spin" style="animation-duration: 40s"></i>
                             </div>
                         </div>
                     </div>
@@ -589,24 +822,52 @@
 
                 deckZone.appendChild(container);
                 
-                // Cascading entrance animation
                 setTimeout(() => {
                     container.style.opacity = '1';
                     container.style.transform = 'translateY(0)';
-                }, idx * 60);
+                    
+                    bind3DParallaxToCard(container);
+                }, idx * 50);
             });
         }
 
-        // Shuffle deck visualization
+        // 3D Parallax Tilt Effect Engine for cards
+        function bind3DParallaxToCard(cardElement) {
+            const cardInner = cardElement.querySelector('.card-inner');
+            
+            cardElement.addEventListener('mousemove', (e) => {
+                const rect = cardElement.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = ((centerY - y) / centerY) * 15;
+                const rotateY = ((x - centerX) / centerX) * 15;
+                
+                cardInner.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+                cardInner.style.boxShadow = "0 15px 35px rgba(212, 175, 55, 0.35)";
+                
+                if (Math.random() > 0.85) {
+                    cursorParticles.push(new CursorSparkle(e.clientX, e.clientY));
+                }
+            });
+
+            cardElement.addEventListener('mouseleave', () => {
+                cardInner.style.transform = `rotateX(0deg) rotateY(0deg) scale(1)`;
+                cardInner.style.boxShadow = "none";
+            });
+        }
+
         function shuffleDeck() {
             const icon = document.getElementById('shuffle-icon');
             icon.classList.add('animate-spin');
             
             const cardElements = document.querySelectorAll('.shuffling-card');
-            cardElements.forEach((el, index) => {
-                // Animate clustering inward
-                el.style.transform = `translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px) scale(0.9)`;
-                el.style.opacity = '0.5';
+            cardElements.forEach((el) => {
+                el.style.transform = `translate(${(Math.random() - 0.5) * 50}px, ${(Math.random() - 0.5) * 50}px) scale(0.85)`;
+                el.style.opacity = '0.4';
             });
 
             setTimeout(() => {
@@ -615,112 +876,160 @@
             }, 600);
         }
 
-        // Executed when user taps/clicks a card to draw
         function drawThisCard(cardId, element) {
-            drawnCard = ORACLE_DECK.find(c => c.id === cardId);
+            if (drawnCards.some(c => c.id === cardId)) return;
             
-            // Add a rapid spin-glowing zoom animation to the drawn card
-            element.classList.add('scale-110', 'z-50', 'ring-2', 'ring-yellow-400');
-            
-            // Trigger beautiful ambient chime
-            playChime(440, 'sine', 0.6); // A4
-            playChime(659.25, 'triangle', 0.4); // E5
+            const cardData = ORACLE_DECK.find(c => c.id === cardId);
+            drawnCards.push(cardData);
 
-            setTimeout(() => {
-                revealStage();
-            }, 600);
+            element.classList.add('pointer-events-none');
+            element.style.transform = 'translateY(-15px) scale(1.08)';
+            element.querySelector('.card-back').style.borderColor = "#facc15";
+            
+            const rect = element.getBoundingClientRect();
+            for (let i = 0; i < 15; i++) {
+                cursorParticles.push(new CursorSparkle(
+                    rect.left + rect.width/2 + (Math.random() - 0.5) * 40,
+                    rect.top + rect.height/2 + (Math.random() - 0.5) * 40
+                ));
+            }
+
+            const baseFrequency = 440 + (drawnCards.length * 110);
+            playChime(baseFrequency, 'sine', 0.5);
+
+            const maxNeeded = spreadType === 'single' ? 1 : 3;
+            if (drawnCards.length >= maxNeeded) {
+                setTimeout(() => {
+                    revealOracleStage();
+                }, 800);
+            } else {
+                const counterInfo = document.getElementById('draw-counter-info');
+                counterInfo.textContent = `已抽第 ${drawnCards.length} 張卡牌，請再抽 ${maxNeeded - drawnCards.length} 張`;
+            }
         }
 
-        // Procedural chime generator
-        function playChime(freq, type, duration) {
-            if (!audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                
-                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-                
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + duration);
-            } catch (e){}
-        }
-
-        // Prepare the stage with drawn card data and begin AI request
-        function revealStage() {
-            // Transitions Step 2 -> Step 3
+        function revealOracleStage() {
             document.getElementById('step-2').classList.add('hidden');
             document.getElementById('step-3').classList.remove('hidden');
             
             document.getElementById('step-lbl-2').className = "opacity-40 transition-all";
             document.getElementById('step-lbl-3').className = "text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1";
 
-            // Inject the drawn card's content into the final card container
-            const frontEl = document.getElementById('final-card-front');
-            frontEl.style.background = drawnCard.gradient;
+            const cardsContainer = document.getElementById('drawn-cards-result-container');
+            cardsContainer.innerHTML = '';
+
+            const cardWidthClass = spreadType === 'single' ? 'w-64 h-96' : 'w-40 h-64 sm:w-44 sm:h-72';
             
-            // Determine border color style
-            frontEl.innerHTML = `
-                <div class="border border-white/20 h-full w-full rounded-lg flex flex-col justify-between p-4 relative overflow-hidden">
-                    <!-- Mystic subtle card pattern -->
-                    <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:24px_24px]"></div>
-                    
-                    <!-- Card Top Header -->
-                    <div class="flex justify-between items-center text-[10px] tracking-widest text-white/80 font-mono z-10">
-                        <span>ORACLE DECK</span>
-                        <span>N° ${drawnCard.id < 10 ? '0' + drawnCard.id : drawnCard.id}</span>
-                    </div>
+            drawnCards.forEach((card, idx) => {
+                const label = spreadType === 'single' ? '星宿核心卡' : (idx === 0 ? '過去 ｜ 根源之引' : idx === 1 ? '現在 ｜ 現狀映照' : '未來 ｜ 命運指引');
+                
+                const cardOuter = document.createElement('div');
+                cardOuter.className = `flex flex-col items-center space-y-2 select-none`;
+                
+                cardOuter.innerHTML = `
+                    <span class="text-[10px] text-yellow-400 tracking-widest font-semibold uppercase bg-yellow-500/10 px-2 py-0.5 rounded-full">${label}</span>
+                    <div class="card-container ${cardWidthClass} relative">
+                        <div class="card-inner w-full h-full cursor-pointer relative" id="final-inner-${idx}" style="transform-style: preserve-3d; transition: transform 0.8s;">
+                            <!-- Back -->
+                            <div class="card-back flex flex-col justify-between p-4">
+                                <div class="border border-yellow-500/20 h-full w-full rounded-lg flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-indigo-950/40 to-slate-950/60">
+                                    <div class="absolute inset-0 bg-[radial-gradient(#1e1548_1px,transparent_1px)] [background-size:16px_16px] opacity-30"></div>
+                                    <i class="fa-regular fa-sun text-xl text-yellow-500/30 animate-spin" style="animation-duration: 25s"></i>
+                                </div>
+                            </div>
+                            <!-- Front -->
+                            <div class="card-front p-3.5 flex flex-col justify-between" style="background: ${card.gradient}">
+                                <div class="border border-white/20 h-full w-full rounded-lg flex flex-col justify-between p-3 relative overflow-hidden">
+                                    <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                                    
+                                    <div class="flex justify-between items-center text-[8px] tracking-widest text-white/80 font-mono z-10">
+                                        <span>ORACLE</span>
+                                        <span>N° 0${card.id}</span>
+                                    </div>
 
-                    <!-- Custom Visual (Dynamic elegant SVG Illustration) -->
-                    <div class="flex-grow flex flex-col items-center justify-center space-y-4 z-10 my-4">
-                        <div class="w-20 h-20 rounded-full border border-white/30 flex items-center justify-center bg-white/10 backdrop-blur-md shadow-inner animate-pulse">
-                            <i class="${drawnCard.icon} text-3xl text-white"></i>
+                                    <div class="flex-grow flex flex-col items-center justify-center space-y-2 z-10 my-2">
+                                        <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full border border-white/30 flex items-center justify-center bg-white/10 backdrop-blur-md animate-pulse">
+                                            <i class="${card.icon} text-lg sm:text-2xl text-white"></i>
+                                        </div>
+                                        <div class="text-center">
+                                            <h4 class="text-base sm:text-xl font-serif font-bold text-white tracking-widest drop-shadow-md">${card.title}</h4>
+                                            <p class="text-[8px] tracking-widest text-white/90 uppercase mt-0.5 px-1.5 py-0.2 bg-black/20 rounded-full inline-block">${card.keywords.split('｜')[0]}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-[9px] text-white/90 leading-normal text-center z-10 font-light border-t border-white/10 pt-1.5 truncate">
+                                        ${card.keywords}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-center">
-                            <h4 class="text-2xl font-serif font-bold text-white tracking-widest drop-shadow-md">${drawnCard.title}</h4>
-                            <p class="text-[10px] tracking-widest text-white/90 uppercase mt-1 px-2 py-0.5 bg-black/20 rounded-full inline-block">${drawnCard.keywords.split('｜')[0]}</p>
-                        </div>
                     </div>
+                `;
 
-                    <!-- Card Footer -->
-                    <div class="text-[11px] text-white/80 leading-relaxed text-center z-10 font-light border-t border-white/10 pt-2 italic">
-                        "${drawnCard.keywords}"
-                    </div>
-                </div>
-            `;
+                cardsContainer.appendChild(cardOuter);
+                bind3DParallaxToCard(cardOuter.querySelector('.card-container'));
 
-            // Display metadata in interpretation box right away
-            document.getElementById('result-card-title').textContent = `【 ${drawnCard.title} 】`;
-            document.getElementById('result-card-keywords').textContent = `牌面奧秘：${drawnCard.keywords}`;
+                setTimeout(() => {
+                    document.getElementById(`final-inner-${idx}`).classList.add('flipped');
+                    playChime(350 + (idx * 150), 'sine', 0.4);
+                }, idx * 400 + 400);
+            });
 
-            // Automatic delayed 3D flip card effect
-            setTimeout(() => {
-                document.getElementById('final-card-inner').classList.add('flipped');
-            }, 300);
-
-            // Execute the Gemini-3-Flash API request to interpret
+            // Begin Gemini Call directly without updating non-existent legacy elements
             fetchOracleInterpretation();
         }
 
+        // Calls Gemini-2.5-Flash to analyze current state
         async function fetchOracleInterpretation() {
-            const systemPrompt = `你是一位精通神祕學、心理學與靈性諮商的世界級神諭卡解讀專家。請用溫暖、充滿啟發、富含同理心且優美的繁體中文（台灣習慣用語），針對使用者的提問，解讀他所抽取到的神諭卡。解讀應結構化地包含：
-1. 🌟【星流印記：牌面核心象徵】(精煉解讀牌卡的能量象徵)
-2. 💫【星空對話：為您的疑惑解碼】(針對使用者的具體問題，將卡牌意涵與生活、事業、感情等現狀融合進行深度剖析，有同理心地給予啟示)
-3. 🌿【靈魂藥方：落實生活的指引】(提供 2~3 個具體、可行且智慧的下一步行動建議，而非空泛心靈雞湯)
-4. ✨【宇宙守護祝福】(一段優美的療癒總結祝福語)`;
+            let systemPrompt = "";
+            let userPrompt = "";
 
-            const userPrompt = `使用者提問："${selectedQuestion}"
-抽取的神諭卡名：${drawnCard.title}
-牌面核心關鍵字：${drawnCard.keywords}
-牌卡基本定義與大意：${drawnCard.description}`;
+            // Reset Dialogue history for a fresh session
+            dialogHistory = [];
 
-            const apiKey = ""; // Canvas handles this automatically when left empty
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            if (spreadType === 'single') {
+                systemPrompt = `你現在是星宿大祭司「賽莉絲蒂亞」(Celestia)，一位精通星雲神祕學、心理覺察與靈魂指引的線上心靈導師。請以溫和、充滿詩意、洞察人心、且極度溫柔包容的繁體中文（台灣習慣用語）與使用者進行面對面的神諭占卜對話。
+你的對話中需要充滿占卜師進行互動時的專屬儀式用語，例如：
+- 「我的孩子...」、「親愛的尋路人，我的靈擺正對著這張卡牌微微顫動...」
+- 「我從星空光譜中，讀到了你靈魂深處的困惑...」
+
+首要解讀必須精美且有層次，包含：
+1. 🌟【星流契合：大祭司的靈性一瞥】(以溫柔口吻描述你翻開卡牌時的感應，以及卡牌能量的初步顯現)
+2. 💫【命運共振：大祭司解答你的疑惑】(針對使用者輸入的具體問題，抽絲剝繭地融會牌面盲點，解答其人生困局)
+3. 🌿【星際良方：落實生活的具體練習】(給予使用者 2~3 個本週就能開始落實、有智慧的具體日常心靈日常行動)
+4. ✨【大祭司的守護祝福】(一段非常溫暖的靈魂結語，並溫柔地詢問尋路人，是否有任何感受想要進一步交流或提問)
+
+請記住，請保持分段清晰，並在結尾真誠地邀請尋路人追問。`;
+
+                userPrompt = `使用者(尋路人)的問題："${selectedQuestion}"
+抽取的神諭卡名：${drawnCards[0].title}
+牌面核心關鍵字：${drawnCards[0].keywords}
+牌卡大意：${drawnCards[0].description}`;
+            } else {
+                systemPrompt = `你現在是星宿大祭司「賽莉絲蒂亞」(Celestia)，一位精通時空流、前世今生與因果印記的心靈嚮導。請以溫和、神祕且充滿力量的繁體中文（台灣習慣用語）為尋路人解開其時間軌跡。
+對話中必須擁有與占卜師親臨對談的儀式感：
+- 「當這三張星卡依序落下，我聽見了時間齿輪轉動的聲音...」
+- 「孩子，請放鬆你的呼吸，讓我牽引你進入這條過去、現在與未來的因果線...」
+
+解讀必須精緻包含：
+1. ⏳【三生時空：大祭司的時間漫步】(分別精妙、簡潔地描述「過去」、「現在」、「未來」三張牌卡的因果演變)
+2. 💫【星圖串連：命運的因果脈絡】(針對使用者的具體問題，深度剖析這三張牌組合產生的化學反應，解答使用者的卡點)
+3. 🌿【靈魂修煉：大祭司的生活處方】(提供 3 個實用的、在日常中調整能量狀態的具體指引)
+4. ✨【時空守護祝福】(一段激勵與關懷的優美結語，並溫柔地詢問尋路人，是否有任何感受想要進一步交流或提問)
+
+請記住，請保持分段清晰，並在結尾真誠地邀請尋路人追問。`;
+
+                userPrompt = `使用者(尋路人)的問題："${selectedQuestion}"
+1. 【過去/根源】卡牌名：${drawnCards[0].title} (大意: ${drawnCards[0].description})
+2. 【現在/現狀】卡牌名：${drawnCards[1].title} (大意: ${drawnCards[1].description})
+3. 【未來/啟示】卡牌名：${drawnCards[2].title} (大意: ${drawnCards[2].description})`;
+            }
+
+            // Save system prompt inside conversation state
+            dialogHistory.push({ role: "system", text: systemPrompt });
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
             try {
                 const response = await fetch(apiUrl, {
@@ -728,32 +1037,37 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: userPrompt }] }],
-                        systemInstruction: {
-                            parts: [{ text: systemPrompt }]
-                        }
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error("宇宙波長異常，與星河連結中斷");
-                }
+                if (!response.ok) throw new Error("星際波長異常，與星河連結斷開");
 
                 const result = await response.json();
                 const content = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (content) {
                     apiReadingText = content;
-                    displayInterpretation(content);
+                    
+                    // Add this initial priestess message to our dialogue history
+                    dialogHistory.push({ role: "model", text: content });
+
+                    // Hide Loader & Display Main Dialogue Bubble
+                    document.getElementById('ai-loading').classList.add('hidden');
+                    appendPriestessMessage(content);
+                    
+                    // Display follow-up interface
+                    document.getElementById('followup-chat-panel').classList.remove('hidden');
                 } else {
-                    throw new Error("無法讀取星海的低語。");
+                    throw new Error("無法讀取星海意圖");
                 }
 
             } catch (err) {
                 console.error(err);
                 document.getElementById('ai-loading').innerHTML = `
-                    <div class="text-center py-6 text-red-400">
+                    <div class="text-center py-8 text-red-400">
                         <i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i>
-                        <p class="font-semibold">星流通道發生異常</p>
+                        <p class="font-semibold">星系信號傳遞受阻</p>
                         <p class="text-xs text-gray-500 mt-1">${err.message || '請重新嘗試或檢查網路'}</p>
                         <button onclick="fetchOracleInterpretation()" class="mt-4 px-4 py-2 bg-purple-950 border border-purple-500 text-xs rounded-lg text-white hover:bg-purple-900 transition">重新連結</button>
                     </div>
@@ -761,88 +1075,244 @@
             }
         }
 
-        // Processes Markdown syntax from Gemini and streams it in beautiful blocks
-        function displayInterpretation(rawText) {
-            document.getElementById('ai-loading').classList.add('hidden');
-            const box = document.getElementById('ai-content-box');
-            box.classList.remove('hidden');
-            box.innerHTML = '';
-
-            // Simple markdown parser for headings and list formats
+        // Append Priestess response into interactive dialogue scroller
+        function appendPriestessMessage(rawText) {
+            const chatContent = document.getElementById('dynamic-chat-content');
+            
+            const outerDiv = document.createElement('div');
+            outerDiv.className = "chat-bubble flex space-x-3 items-start";
+            
+            const avatar = document.createElement('div');
+            avatar.className = "w-8 h-8 rounded-full bg-gradient-to-tr from-yellow-500 to-purple-600 border border-yellow-500/20 flex items-center justify-center text-yellow-300 flex-shrink-0 text-xs font-serif";
+            avatar.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>`;
+            
+            const bubble = document.createElement('div');
+            // Adjusted classes to elevate reading font-sizes: text-sm md:text-base (Originally text-xs md:text-sm)
+            bubble.className = "bg-purple-950/30 border border-purple-500/20 rounded-2xl rounded-tl-none p-4 max-w-[85%] text-sm md:text-base text-purple-100 leading-relaxed space-y-3.5 shadow-lg";
+            
+            // Format markdown to beautiful elements
             const paragraphs = rawText.split('\n');
             paragraphs.forEach(p => {
                 const trimmed = p.trim();
                 if (!trimmed) return;
 
                 let element;
-                if (trimmed.startsWith('###') || trimmed.startsWith('**') && trimmed.endsWith('**')) {
-                    // Heading
-                    const cleanTxt = trimmed.replace(/###|\*\*/g, '');
+                if (trimmed.startsWith('###') || trimmed.startsWith('##') || (trimmed.startsWith('**') && trimmed.endsWith('**'))) {
+                    const cleanTxt = trimmed.replace(/[#\*]/g, '').trim();
                     element = document.createElement('h4');
-                    element.className = "text-base md:text-lg font-serif font-semibold text-yellow-300 mt-6 mb-2 border-l-2 border-yellow-500/50 pl-3";
+                    // Elevating title block font: text-base md:text-lg
+                    element.className = "text-base md:text-lg font-serif font-semibold text-yellow-300 mt-5 mb-2.5 border-l-2 border-yellow-500/50 pl-2.5";
                     element.innerHTML = cleanTxt;
                 } else if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
-                    // List Item
                     const cleanTxt = trimmed.substring(1).trim();
                     element = document.createElement('li');
-                    element.className = "ml-4 list-disc text-gray-300 my-2.5 pl-1";
+                    element.className = "ml-3 list-disc text-gray-300 my-2 text-justify pl-0.5 leading-relaxed text-sm md:text-base";
                     element.innerHTML = parseInlineMarkdown(cleanTxt);
                 } else {
-                    // Normal paragraph
                     element = document.createElement('p');
-                    element.className = "text-gray-300 mb-4 text-justify leading-relaxed tracking-wide";
+                    element.className = "text-gray-300 mb-3 text-justify leading-relaxed text-sm md:text-base";
                     element.innerHTML = parseInlineMarkdown(trimmed);
                 }
-                box.appendChild(element);
+                bubble.appendChild(element);
             });
 
-            // Make TTS activation button visible
+            outerDiv.appendChild(avatar);
+            outerDiv.appendChild(bubble);
+            chatContent.appendChild(outerDiv);
+
+            scrollToBottom();
+            
+            // Make latest priestess block accessible by Voice Player
+            apiReadingText = rawText;
             document.getElementById('tts-btn').classList.remove('hidden');
         }
 
-        // Simple inline bold parser
+        // Append seeker user question bubbles
+        function appendUserMessage(text) {
+            const chatContent = document.getElementById('dynamic-chat-content');
+            
+            const outerDiv = document.createElement('div');
+            outerDiv.className = "chat-bubble flex space-x-3 items-start justify-end";
+            
+            const bubble = document.createElement('div');
+            // Adjusted classes to elevate user bubble font-sizes: text-sm md:text-base
+            bubble.className = "bg-yellow-500/10 border border-yellow-500/30 rounded-2xl rounded-tr-none p-3.5 max-w-[80%] text-sm md:text-base text-yellow-100 leading-relaxed shadow";
+            bubble.textContent = text;
+            
+            const avatar = document.createElement('div');
+            avatar.className = "w-8 h-8 rounded-full bg-purple-900 border border-purple-500/30 flex items-center justify-center text-purple-300 flex-shrink-0 text-xs font-serif";
+            avatar.innerHTML = `<i class="fa-regular fa-user text-[10px]"></i>`;
+            
+            outerDiv.appendChild(bubble);
+            outerDiv.appendChild(avatar);
+            chatContent.appendChild(outerDiv);
+
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const scroller = document.getElementById('chat-scroller');
+            setTimeout(() => {
+                scroller.scrollTop = scroller.scrollHeight;
+            }, 100);
+        }
+
+        function handleChatKey(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                submitFollowup();
+            }
+        }
+
+        function sendQuickFollowup(text) {
+            document.getElementById('followup-input').value = text;
+            submitFollowup();
+        }
+
+        // Submit follow-up user message to Priestess Celestia via Gemini
+        async function submitFollowup() {
+            const inputEl = document.getElementById('followup-input');
+            const question = inputEl.value.trim();
+            if (!question) return;
+
+            // Clear input box
+            inputEl.value = "";
+
+            // Display user message visually
+            appendUserMessage(question);
+
+            // Insert placeholder typing loader from Celestia
+            const chatContent = document.getElementById('dynamic-chat-content');
+            const typingIndicator = document.createElement('div');
+            typingIndicator.id = "priestess-typing";
+            typingIndicator.className = "chat-bubble flex space-x-3 items-start";
+            typingIndicator.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-purple-950 border border-purple-500/30 flex items-center justify-center text-purple-300 flex-shrink-0 text-xs font-serif">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[10px] animate-spin" style="animation-duration: 3s"></i>
+                </div>
+                <div class="bg-purple-950/20 border border-purple-500/10 rounded-2xl rounded-tl-none p-3.5 max-w-[50%] text-sm text-purple-300 italic animate-pulse">
+                    大祭司賽莉絲蒂亞正在解讀命運絲線...
+                </div>
+            `;
+            chatContent.appendChild(typingIndicator);
+            scrollToBottom();
+
+            // Setup continuous history context to send to API
+            // Map dialogHistory into correct formats
+            const historyPayload = [];
+            
+            // Build system role context manually inside content
+            let compositeHistoryPrompt = "你現在是星宿大祭司「賽莉絲蒂亞」(Celestia)。使用者先前就提問、抽牌獲得了你的指引。\n";
+            compositeHistoryPrompt += `原先提問："${selectedQuestion}"\n`;
+            if (spreadType === 'single') {
+                compositeHistoryPrompt += `抽中牌卡：${drawnCards[0].title} (${drawnCards[0].keywords})\n`;
+            } else {
+                compositeHistoryPrompt += `抽中牌卡：過去: ${drawnCards[0].title} -> 現在: ${drawnCards[1].title} -> 未來: ${drawnCards[2].title}\n`;
+            }
+            compositeHistoryPrompt += "\n這是先前的對話歷史：\n";
+            
+            // Append past chat turns
+            dialogHistory.forEach(item => {
+                if (item.role === 'model') {
+                    compositeHistoryPrompt += `大祭司賽莉絲蒂亞: "${item.text}"\n`;
+                } else if (item.role === 'user') {
+                    compositeHistoryPrompt += `尋路人: "${item.text}"\n`;
+                }
+            });
+
+            compositeHistoryPrompt += `\n現在，尋路人向你追加提問了這個問題： "${question}"。\n請大祭司賽莉絲蒂亞以一貫的神祕、溫柔且充滿療癒力量的口吻解答尋路人，提供深入、有啟示性且溫暖的指引，字數約在 200~300 字內。並在結尾持續歡迎他提問或感受。`;
+
+            // Call Gemini
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: compositeHistoryPrompt }] }]
+                    })
+                });
+
+                // Remove typing indicator
+                const indicator = document.getElementById('priestess-typing');
+                if (indicator) indicator.remove();
+
+                if (!response.ok) throw new Error("星際通道震盪，大祭司的意識暫時受阻");
+
+                const result = await response.json();
+                const content = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (content) {
+                    // Save context thread
+                    dialogHistory.push({ role: "user", text: question });
+                    dialogHistory.push({ role: "model", text: content });
+
+                    // Display priestess response bubble
+                    appendPriestessMessage(content);
+                } else {
+                    throw new Error("大祭司並未感應到明確答案");
+                }
+
+            } catch (err) {
+                console.error(err);
+                const indicator = document.getElementById('priestess-typing');
+                if (indicator) indicator.remove();
+                
+                const errorBubble = document.createElement('div');
+                errorBubble.className = "chat-bubble flex space-x-3 items-start";
+                errorBubble.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-red-950 flex items-center justify-center text-red-300 flex-shrink-0 text-xs">!</div>
+                    <div class="bg-red-950/20 border border-red-500/20 rounded-2xl rounded-tl-none p-3.5 text-xs text-red-300">
+                        大祭司傳音受阻：${err.message || '請重新傳送追問。'}
+                    </div>
+                `;
+                chatContent.appendChild(errorBubble);
+                scrollToBottom();
+            }
+        }
+
         function parseInlineMarkdown(text) {
             return text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-yellow-100 font-semibold">$1</strong>');
         }
 
-        // Request speech rendering for the output oracle interpretation via Gemini Audio
+        // TTS rendering for oracle text (Gemini audio fallback)
         async function readOracleText() {
             const btn = document.getElementById('tts-btn');
             const btnText = document.getElementById('tts-btn-text');
-            
-            // If already speaking, stop
             const audioPlayer = document.getElementById('tts-audio');
+            
             if (!audioPlayer.paused) {
                 audioPlayer.pause();
-                btnText.textContent = "聆聽星空神諭 (Voice)";
+                btnText.textContent = "聆聽大祭司指引 (Voice)";
                 btn.classList.remove('ring-2', 'ring-yellow-400');
                 return;
             }
 
-            // UI Feedback
-            btnText.textContent = "正在凝聚宇宙聖音...";
+            btnText.textContent = "正在共鳴祭司聖音...";
             btn.disabled = true;
 
-            // Prepare streamlined text for TTS (limit length slightly for high response quality and short loads)
-            const cleanTtsText = `你抽到了${drawnCard.title}神諭卡。針對你的問題：${selectedQuestion}。以下為你解讀：\n` + 
-                apiReadingText.replace(/[#*_\-\n]/g, ' ').substring(0, 600) + '...感謝宇宙的引導，願星辰照亮你的道路。';
+            // Generate clean speech context for latest dialogue bubble
+            const cleanTtsText = `親愛的尋路人。針對你的疑惑，我的解讀是：\n` + 
+                apiReadingText.replace(/[#*_\-\n]/g, ' ').substring(0, 450) + '...祝你福至心靈，平安順心。';
 
             const payload = {
                 contents: [{
-                    parts: [{ text: `Say warmly and deeply in traditional Taiwanese Mandarin: ${cleanTtsText}` }]
+                    parts: [{ text: `Speak in a warm, gentle, mystical and deeply comforting tone (Traditional Chinese / Taiwan style): ${cleanTtsText}` }]
                 }],
                 generationConfig: {
                     responseModalities: ["AUDIO"],
                     speechConfig: {
                         voiceConfig: {
-                            prebuiltVoiceConfig: { voiceName: "Vindemiatrix" } // Gentle, empathetic
+                            prebuiltVoiceConfig: { voiceName: "Vindemiatrix" } 
                         }
                     }
                 },
                 model: "gemini-2.5-flash-preview-tts"
             };
 
-            const apiKey = "";
+            const apiKey = "AIzaSyBt4z6Xy-9a7KB5vunLQtSzb7WFUxv16Dc";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
 
             try {
@@ -852,7 +1322,7 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error("音頻通道忙碌中");
+                if (!response.ok) throw new Error("語音通道忙碌中");
 
                 const result = await response.json();
                 const part = result?.candidates?.[0]?.content?.parts?.[0];
@@ -868,33 +1338,31 @@
 
                     audioPlayer.src = audioUrl;
                     
-                    // Set up event listeners
                     audioPlayer.oncanplay = () => {
                         audioPlayer.play();
-                        btnText.textContent = "正播送神諭語音 (點擊停止)";
+                        btnText.textContent = "祭司說法中 (點擊暫停)";
                         btn.disabled = false;
                         btn.classList.add('ring-2', 'ring-yellow-400');
                     };
 
                     audioPlayer.onended = () => {
-                        btnText.textContent = "聆聽星空神諭 (Voice)";
+                        btnText.textContent = "聆聽大祭司指引 (Voice)";
                         btn.classList.remove('ring-2', 'ring-yellow-400');
                     };
                 } else {
-                    throw new Error("無效的語音數據");
+                    throw new Error("無效語音訊號");
                 }
 
             } catch (err) {
                 console.warn(err);
-                btnText.textContent = "語音暫不可用，請行閱讀";
+                btnText.textContent = "大祭司傳音能量微弱中";
                 btn.disabled = false;
                 setTimeout(() => {
-                    btnText.textContent = "聆聽星空神諭 (Voice)";
+                    btnText.textContent = "聆聽大祭司指引 (Voice)";
                 }, 3000);
             }
         }
 
-        // Convert base64 string to ArrayBuffer (native JS)
         function base64ToArrayBuffer(base64) {
             const binaryString = window.atob(base64);
             const len = binaryString.length;
@@ -905,39 +1373,24 @@
             return bytes.buffer;
         }
 
-        // Convert PCM Int16 raw data to playable WAV format
         function pcmToWav(samples, sampleRate) {
             const buffer = new ArrayBuffer(44 + samples.length * 2);
             const view = new DataView(buffer);
 
-            /* RIFF identifier */
             writeString(view, 0, 'RIFF');
-            /* file length */
             view.setUint32(4, 36 + samples.length * 2, true);
-            /* RIFF type */
             writeString(view, 8, 'WAVE');
-            /* format chunk identifier */
             writeString(view, 12, 'fmt ');
-            /* format chunk length */
             view.setUint32(16, 16, true);
-            /* sample format (raw) */
             view.setUint16(20, 1, true);
-            /* channel count */
             view.setUint16(22, 1, true);
-            /* sample rate */
             view.setUint32(24, sampleRate, true);
-            /* byte rate (sample rate * block align) */
             view.setUint32(28, sampleRate * 2, true);
-            /* block align (channel count * bytes per sample) */
             view.setUint16(32, 2, true);
-            /* bits per sample */
             view.setUint16(34, 16, true);
-            /* data chunk identifier */
             writeString(view, 36, 'data');
-            /* data chunk length */
             view.setUint32(40, samples.length * 2, true);
 
-            // Write PCM audio samples
             let index = 44;
             for (let i = 0; i < samples.length; i++) {
                 view.setInt16(index, samples[i], true);
@@ -953,61 +1406,71 @@
             }
         }
 
-        // Exporting results as a neat text block for download
+        // Export complete conversational report to TXT file
         function downloadReport() {
             const today = new Date().toLocaleDateString('zh-TW');
-            const textContent = `============== 🌌 宇宙星啟 - 占卜神諭報告 🌌 ==============
+            const cardsStr = spreadType === 'single' 
+                ? `【 ${drawnCards[0].title} 】(${drawnCards[0].keywords})`
+                : `過去：【 ${drawnCards[0].title} 】➔ 現在：【 ${drawnCards[1].title} 】➔ 未來：【 ${drawnCards[2].title} 】`;
+
+            let chatHistoryStr = "";
+            dialogHistory.forEach((item) => {
+                if (item.role === 'model') {
+                    chatHistoryStr += `\n[大祭司 賽莉絲蒂亞]：\n${item.text}\n`;
+                } else if (item.role === 'user') {
+                    chatHistoryStr += `\n[尋路人追問]：${item.text}\n`;
+                }
+            });
+
+            const textContent = `============== 🌌 宇宙星啟 - 占卜神諭大祭司開示報告 (極致對話版) ==============
 諮詢日期：${today}
-我的提問："${selectedQuestion}"
+我的最初提問："${selectedQuestion}"
+選擇牌陣：${spreadType === 'single' ? '單牌每日指引' : '三牌時空時間流'}
 
-抽中神諭：【 ${drawnCard.title} 】
-牌卡大意：${drawnCard.keywords}
+所抽選的靈性卡牌：
+${cardsStr}
 ------------------------------------------------------
-【靈性引導與解讀】：
-
-${apiReadingText}
-
+【大祭司賽莉絲蒂亞 ➔ 對話實錄與解密】：
+${chatHistoryStr}
 ------------------------------------------------------
-願星空眷顧你的道路，前行無礙。`;
+願星空與你的腳步同行。`;
 
-            // Download trigger using execCommand or simple blob link
             const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `宇宙星啟-神諭占卜報告-${drawnCard.title}.txt`;
+            link.download = `宇宙星啟-大祭司開示對話報告-${today.replace(/\//g, '-')}.txt`;
             link.click();
         }
 
-        // Reset and clear states for next oracle inquiry
+        // Restart Oracle process flow and clear states
         function restartOracle() {
-            // Stop any playing TTS audio
             const audioPlayer = document.getElementById('tts-audio');
             audioPlayer.pause();
             audioPlayer.src = "";
 
-            // Reset States
             selectedQuestion = "";
-            drawnCard = null;
+            drawnCards = [];
             apiReadingText = "";
+            chargePercentage = 0;
+            isCharging = false;
+            dialogHistory = [];
 
             document.getElementById('oracle-question').value = "";
-            document.getElementById('final-card-inner').classList.remove('flipped');
             document.getElementById('tts-btn').classList.add('hidden');
-            document.getElementById('tts-btn-text').textContent = "聆聽星空神諭 (Voice)";
-
+            document.getElementById('tts-btn-text').textContent = "聆聽大祭司指引 (Voice)";
+            document.getElementById('dynamic-chat-content').innerHTML = "";
+            document.getElementById('followup-chat-panel').classList.add('hidden');
+            
             // Step Transitions
             document.getElementById('step-3').classList.add('hidden');
             document.getElementById('step-1').classList.remove('hidden');
 
             document.getElementById('step-lbl-3').className = "opacity-40 transition-all";
             document.getElementById('step-lbl-1').className = "text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1";
+            
+            // Reset loading placeholder view
+            document.getElementById('ai-loading').classList.remove('hidden');
         }
-
-        // Autoplay/Init handling on load
-        window.onload = function() {
-            // Visual checks on particles and sizing
-            resizeCanvas();
-        };
     </script>
 </body>
 </html>
