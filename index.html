@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宇宙星啟 ｜ AI 智能神諭卡占卜</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #100b26 0%, #05030f 100%);
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(16, 11, 38, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(212, 175, 55, 0.3);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(212, 175, 55, 0.6);
+        }
+
+        /* Golden glow effects */
+        .gold-glow {
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5), 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+        .gold-border {
+            border-image: linear-gradient(to right, #d4af37, #f3e5ab, #aa7c11) 1;
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, #aa7c11 0%, #d4af37 50%, #f3e5ab 100%);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-gold:hover {
+            box-shadow: 0 6px 25px rgba(212, 175, 55, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* 3D Card Flip styling */
+        .card-container {
+            perspective: 1000px;
+        }
+        .card-inner {
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+        .card-back {
+            background: linear-gradient(135deg, #0f0a24 0%, #1a123a 100%);
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+        .card-front {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #150f30 0%, #0d091e 100%);
+            border: 2px solid rgba(212, 175, 55, 0.8);
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.25);
+        }
+
+        /* Magical pulse animation */
+        @keyframes subtle-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.02); opacity: 1; }
+        }
+        .pulse-ambient {
+            animation: subtle-pulse 4s ease-in-out infinite;
+        }
+
+        /* Floating particles overlay */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Shuffling animation styles */
+        .shuffling-card {
+            transition: all 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="relative min-h-screen flex flex-col justify-between">
+
+    <!-- Canvas background for stars -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Header -->
+    <header class="relative z-10 w-full py-6 px-8 flex justify-between items-center border-b border-purple-950/40 bg-black/20 backdrop-blur-md">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full border border-yellow-500/50 flex items-center justify-center bg-purple-950/30">
+                <i class="fa-solid fa-wand-magic-sparkles text-yellow-400 text-lg animate-pulse"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-100 to-amber-400 font-serif">宇宙星啟</h1>
+                <p class="text-xs text-purple-300 tracking-widest uppercase">Oracle of Nebula</p>
+            </div>
+        </div>
+        
+        <!-- Cosmic Sound Toggle -->
+        <button id="sound-toggle" onclick="toggleCelestialSound()" class="px-3 py-1.5 rounded-full border border-purple-500/30 text-purple-300 text-xs flex items-center space-x-1.5 hover:bg-purple-950/40 transition">
+            <i class="fa-solid fa-volume-xmark" id="sound-icon"></i>
+            <span id="sound-text">靜音</span>
+        </button>
+    </header>
+
+    <!-- Main Container -->
+    <main class="relative z-10 flex-grow max-w-6xl w-full mx-auto px-4 py-8 flex flex-col justify-center items-center">
+        
+        <!-- Step Indicator -->
+        <div class="w-full max-w-xl mx-auto mb-8">
+            <div class="flex justify-between items-center text-xs text-purple-400 uppercase tracking-widest">
+                <span id="step-lbl-1" class="text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1">1. 設定意圖</span>
+                <span id="step-lbl-2" class="opacity-40 transition-all duration-300">2. 靜心抽取</span>
+                <span id="step-lbl-3" class="opacity-40 transition-all duration-300">3. 神啟顯化</span>
+            </div>
+        </div>
+
+        <!-- STEP 1: Question Input Screen -->
+        <section id="step-1" class="w-full max-w-2xl bg-black/40 border border-purple-500/20 rounded-2xl p-8 md:p-12 backdrop-blur-lg shadow-2xl transition-all duration-500">
+            <div class="text-center mb-8">
+                <span class="text-xs font-semibold uppercase tracking-widest text-yellow-400 bg-yellow-500/10 px-3 py-1 rounded-full">AI 靈性對話</span>
+                <h2 class="text-3xl md:text-4xl font-serif font-semibold mt-4 text-white">對星空傾訴您的疑惑</h2>
+                <p class="text-gray-400 mt-2 text-sm md:text-base">在卡牌被抽起前，請先將思緒凝聚。您想探尋的是事業、愛情，還是人生的轉折指引？</p>
+            </div>
+
+            <div class="space-y-6">
+                <div>
+                    <label for="oracle-question" class="block text-xs font-semibold text-purple-300 uppercase tracking-wider mb-2">請在下方輸入您的具體問題：</label>
+                    <textarea id="oracle-question" rows="3" 
+                        class="w-full bg-purple-950/20 border border-purple-500/40 rounded-xl px-4 py-3 text-white placeholder-purple-300/40 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all text-base"
+                        placeholder="例：我正考慮轉換跑道到新的產業，這對我的長遠生涯發展會帶來什麼樣的契機與挑戰？"></textarea>
+                </div>
+
+                <!-- Suggestion Chips -->
+                <div>
+                    <span class="text-xs text-purple-400 block mb-2">或者，快速選擇常見意圖：</span>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="fillPresetQuestion('我近期在工作上感到迷茫，未來的事業發展應該如何突破現狀？')" class="text-xs bg-purple-950/40 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition">💼 事業與突破</button>
+                        <button onclick="fillPresetQuestion('我與伴侶/特定對象未來的感情發展，有什麼需要特別注意或學習的課題？')" class="text-xs bg-purple-950/40 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition">❤️ 感情與和諧</button>
+                        <button onclick="fillPresetQuestion('如何在這個月提升我的內在平靜與能量磁場？需要放下什麼？')" class="text-xs bg-purple-950/40 border border-purple-500/20 hover:border-yellow-500/40 px-3 py-1.5 rounded-lg text-purple-200 transition">🧘 靈性與能量</button>
+                    </div>
+                </div>
+
+                <!-- Start Button -->
+                <div class="pt-4">
+                    <button onclick="proceedToDraw()" class="w-full btn-gold text-purple-950 font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center space-x-2">
+                        <span>開啟星河通道</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 2: Card Selecting Screen -->
+        <section id="step-2" class="w-full hidden transition-all duration-500 flex flex-col items-center">
+            <div class="text-center mb-8 max-w-lg">
+                <span class="text-xs font-semibold uppercase tracking-widest text-purple-300 bg-purple-500/10 px-3 py-1 rounded-full">抽卡階段</span>
+                <p class="text-gray-400 mt-3 text-sm">您的問題：「<span id="display-question" class="text-yellow-200 italic font-semibold"></span>」</p>
+                <h3 class="text-2xl font-serif text-white mt-2">深呼吸三次，點擊任意卡牌抽取您的神諭</h3>
+                
+                <div class="mt-4 flex justify-center space-x-4">
+                    <button onclick="shuffleDeck()" class="px-4 py-2 bg-purple-950/40 hover:bg-purple-900/40 border border-purple-500/30 rounded-lg text-xs tracking-wider flex items-center space-x-2 transition">
+                        <i class="fa-solid fa-rotate-right" id="shuffle-icon"></i>
+                        <span>重新洗牌</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card Spread Zone -->
+            <div id="deck-zone" class="w-full max-w-5xl grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4 py-6 px-2 justify-center items-center">
+                <!-- Cards will be injected dynamically here -->
+            </div>
+        </section>
+
+        <!-- STEP 3: Oracle Reveal & AI Interpretation Screen -->
+        <section id="step-3" class="w-full max-w-4xl hidden transition-all duration-500">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Left: The Drawn Card -->
+                <div class="lg:col-span-4 flex flex-col items-center">
+                    <div id="final-card-container" class="card-container w-64 h-96 relative mx-auto mb-6">
+                        <!-- Single Selected Card with Flip Animation -->
+                        <div id="final-card-inner" class="card-inner w-full h-full cursor-pointer relative">
+                            <!-- Back -->
+                            <div class="card-back flex flex-col justify-between p-4">
+                                <div class="border border-yellow-500/20 h-full w-full rounded-lg flex flex-col items-center justify-center relative overflow-hidden">
+                                    <div class="absolute inset-0 bg-[radial-gradient(#1e1548_1px,transparent_1px)] [background-size:16px_16px] opacity-30"></div>
+                                    <i class="fa-regular fa-compass text-4xl text-yellow-500/40 animate-spin" style="animation-duration: 20s"></i>
+                                </div>
+                            </div>
+                            <!-- Front -->
+                            <div id="final-card-front" class="card-front p-4 flex flex-col justify-between">
+                                <!-- Dynamically replaced in JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action items under the card -->
+                    <div class="flex flex-col space-y-3 w-64">
+                        <button id="tts-btn" onclick="readOracleText()" class="hidden w-full bg-purple-950/60 hover:bg-purple-900/60 border border-yellow-500/40 hover:border-yellow-500 rounded-xl py-3 px-4 text-xs font-semibold text-yellow-200 transition-all flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-microphone-lines animate-pulse text-yellow-400"></i>
+                            <span id="tts-btn-text">聆聽星空神諭 (Voice)</span>
+                        </button>
+                        <button onclick="downloadReport()" class="w-full bg-black/40 hover:bg-black/60 border border-purple-500/30 hover:border-purple-500/60 rounded-xl py-3 px-4 text-xs font-semibold text-purple-300 transition-all flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-download"></i>
+                            <span>下載本次神諭圖文</span>
+                        </button>
+                        <button onclick="restartOracle()" class="w-full bg-purple-950/20 hover:bg-purple-950/40 border border-purple-500/10 rounded-xl py-3 px-4 text-xs text-gray-400 transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-reply"></i>
+                            <span>重回凡世 / 再次問卜</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: AI Guidance Panel -->
+                <div class="lg:col-span-8 bg-black/40 border border-purple-500/20 rounded-2xl p-6 md:p-8 backdrop-blur-lg flex flex-col min-h-[400px]">
+                    
+                    <!-- Card Quick Summary Header -->
+                    <div class="border-b border-purple-950/60 pb-4 mb-6">
+                        <span class="text-xs text-yellow-400 tracking-wider font-semibold">您抽到了</span>
+                        <h3 id="result-card-title" class="text-2xl font-serif text-white mt-1">【卡牌載入中】</h3>
+                        <p id="result-card-keywords" class="text-sm text-purple-300 mt-1 italic">關鍵字：---</p>
+                    </div>
+
+                    <!-- AI Streaming/Output Area -->
+                    <div class="flex-grow flex flex-col">
+                        <!-- Loading State -->
+                        <div id="ai-loading" class="flex flex-col items-center justify-center py-12 space-y-4">
+                            <div class="relative w-16 h-16">
+                                <div class="absolute inset-0 rounded-full border-4 border-purple-500/20"></div>
+                                <div class="absolute inset-0 rounded-full border-4 border-t-yellow-400 animate-spin"></div>
+                                <div class="absolute inset-3 rounded-full border-2 border-b-purple-400 animate-ping" style="animation-duration: 2s"></div>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm font-semibold text-yellow-100 font-serif">宇宙意識連結中...</p>
+                                <p id="loading-tip" class="text-xs text-gray-400 mt-1 max-w-sm">正在透過高維度通道為您的疑惑進行演繹解碼</p>
+                            </div>
+                        </div>
+
+                        <!-- Content Area -->
+                        <div id="ai-content-box" class="hidden text-gray-200 space-y-6 leading-relaxed text-sm md:text-base">
+                            <!-- Interpretation paragraphs injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="relative z-10 w-full py-6 text-center text-xs text-purple-400/60 border-t border-purple-950/20 bg-black/40 backdrop-blur-sm">
+        <p>© 2026 宇宙星啟 Oracle of Nebula. 由 Gemini-3.1-Flash 提供神諭指引與語音演繹.</p>
+        <p class="mt-1">靈性啟發非絕對科學預測，請保持自由意志與覺察。</p>
+    </footer>
+
+    <!-- Audio Player (hidden) -->
+    <audio id="tts-audio" class="hidden"></audio>
+
+    <!-- JS Logic Block -->
+    <script>
+        // Oracle Deck Definition
+        const ORACLE_DECK = [
+            {
+                id: 1,
+                title: "星際啟航",
+                keywords: "探索 ｜ 勇氣 ｜ 全新旅程",
+                description: "象徵踏入完全未知的領域，拋開過往的思維模式。宇宙正在召喚您展開新世界，不要害怕跨出舒適圈。",
+                gradient: "linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #93c5fd 100%)",
+                icon: "fa-regular fa-paper-plane",
+                color: "blue"
+            },
+            {
+                id: 2,
+                title: "深海靜默",
+                keywords: "內省 ｜ 智慧 ｜ 保持耐心",
+                description: "當下不宜急躁推進，而需像深海一般沉澱。在萬籟俱寂的內在自我中，能找到解決現實阻礙的核心智慧。",
+                gradient: "linear-gradient(135deg, #111827 0%, #1e1b4b 50%, #312e81 100%)",
+                icon: "fa-solid fa-water",
+                color: "darkblue"
+            },
+            {
+                id: 3,
+                title: "鳳凰浴火",
+                keywords: "蛻變 ｜ 重生 ｜ 意志淬鍊",
+                description: "一段舊關係、舊信念或模式的消逝，是為了騰出嶄新生命的空間。浴火過後的您，將具備前所未有的強大生命力。",
+                gradient: "linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #f59e0b 100%)",
+                icon: "fa-solid fa-fire-flame-curved",
+                color: "red"
+            },
+            {
+                id: 4,
+                title: "大地根基",
+                keywords: "穩定 ｜ 養分 ｜ 扎根實踐",
+                description: "檢視您的現實基底。無論是財務、身體健康或是具體計畫，都需要一步一腳印、穩紮穩打地築巢，不宜好高鶩遠。",
+                gradient: "linear-gradient(135deg, #1c1917 0%, #44403c 50%, #78716c 100%)",
+                icon: "fa-solid fa-mountain",
+                color: "earth"
+            },
+            {
+                id: 5,
+                title: "月影微光",
+                keywords: "直覺 ｜ 潛意識 ｜ 迷霧探索",
+                description: "理性無法解釋所有的事物，相信您那敏銳的直覺與夢境預示。有些真相正隱藏在陰暗面中，需要用溫柔的感知去揭開。",
+                gradient: "linear-gradient(135deg, #2e1065 0%, #581c87 50%, #d8b4fe 100%)",
+                icon: "fa-regular fa-moon",
+                color: "purple"
+            },
+            {
+                id: 6,
+                title: "烈陽真火",
+                keywords: "生命力 ｜ 顯化 ｜ 成功在望",
+                description: "無比的光明與正面能量正匯聚於此。您的想法有極高的實踐可能，盡情展現熱情與自信，您的光芒將照耀周遭的夥伴。",
+                gradient: "linear-gradient(135deg, #ea580c 0%, #facc15 50%, #fef08a 100%)",
+                icon: "fa-regular fa-sun",
+                color: "yellow"
+            },
+            {
+                id: 7,
+                title: "命運之輪",
+                keywords: "周期 ｜ 變革 ｜ 順應時勢",
+                description: "生命中有些不可逆轉的巨大輪轉正在發生。學會隨風起舞，而非執著抵抗。接受無常，才能找到生命最完美的平衡點。",
+                gradient: "linear-gradient(135deg, #065f46 0%, #059669 50%, #6ee7b7 100%)",
+                icon: "fa-solid fa-arrows-spin",
+                color: "green"
+            },
+            {
+                id: 8,
+                title: "微風耳語",
+                keywords: "溝通 ｜ 靈活 ｜ 資訊傳遞",
+                description: "多加留意突如其來的消息、或是他人偶然的提議。保持像風一般的流動性，切忌固步自封。良善的溝通是當前的解方。",
+                gradient: "linear-gradient(135deg, #115e59 0%, #14b8a6 50%, #99f6e4 100%)",
+                icon: "fa-solid fa-wind",
+                color: "teal"
+            },
+            {
+                id: 9,
+                title: "心靈之泉",
+                keywords: "治癒 ｜ 愛 ｜ 豐盛感知",
+                description: "這是一張極具情感滋養的牌，象徵關係修復或自我接納。給予自己一些溫柔的呵護與原諒，您內在的愛能化解所有防備。",
+                gradient: "linear-gradient(135deg, #0369a1 0%, #0ea5e9 50%, #bae6fd 100%)",
+                icon: "fa-solid fa-droplet",
+                color: "lightblue"
+            },
+            {
+                id: 10,
+                title: "真理之鑰",
+                keywords: "啟示 ｜ 頓悟 ｜ 真實核心",
+                description: "迷霧終將散去，一場重要的頓悟即將到來。看清事物的本質而非表面包裝。這張牌要求您對自己與他人保持絕對的誠實。",
+                gradient: "linear-gradient(135deg, #854d0e 0%, #ca8a04 50%, #fef9c3 100%)",
+                icon: "fa-solid fa-key",
+                color: "gold"
+            },
+            {
+                id: 11,
+                title: "守護之翼",
+                keywords: "保護 ｜ 引導 ｜ 靈魂守護者",
+                description: "您並非孤身奮戰。不論遭遇怎樣的考驗，宇宙溫和慈悲的力量始終圍繞在您身旁。保持信念，放下所有不必要的擔憂。",
+                gradient: "linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #c7d2fe 100%)",
+                icon: "fa-solid fa-feather",
+                color: "indigo"
+            },
+            {
+                id: 12,
+                title: "幻影迷霧",
+                keywords: "破除幻象 ｜ 覺察 ｜ 自我抉擇",
+                description: "眼前的困境或誘惑，可能只是自我想像力的投射。停止過度解讀或自我質疑，用清晰澄澈的雙眼，重新聚焦您真正的渴望。",
+                gradient: "linear-gradient(135deg, #500724 0%, #831843 50%, #fbcfe8 100%)",
+                icon: "fa-solid fa-cloud-sun",
+                color: "pink"
+            }
+        ];
+
+        // State variables
+        let selectedQuestion = "";
+        let drawnCard = null;
+        let isSoundPlaying = false;
+        let audioCtx = null;
+        let ambientOscillator = null;
+        let ambientGainNode = null;
+        let apiReadingText = ""; // Holds the parsed output text
+
+        // Particle Background Logic
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.5 + 0.5;
+                this.speedX = Math.random() * 0.2 - 0.1;
+                this.speedY = Math.random() * 0.2 - 0.1;
+                this.color = `rgba(${200 + Math.floor(Math.random() * 55)}, ${180 + Math.floor(Math.random() * 75)}, 255, ${Math.random() * 0.4 + 0.1})`;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles
+        for (let i = 0; i < 80; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // Procedural Audio Engine for Mystical Ambient Sound
+        function initAudio() {
+            if (audioCtx) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Low drone base
+                ambientOscillator = audioCtx.createOscillator();
+                ambientOscillator.type = 'sine';
+                ambientOscillator.frequency.value = 110; // A2 note, deep and grounding
+
+                // Gentle filter to soften it
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 400;
+
+                ambientGainNode = audioCtx.createGain();
+                ambientGainNode.gain.setValueAtTime(0, audioCtx.currentTime); // start silent
+
+                ambientOscillator.connect(filter);
+                filter.connect(ambientGainNode);
+                ambientGainNode.connect(audioCtx.destination);
+
+                // Add a very subtle slow modulation for standard mystic drone
+                const lfo = audioCtx.createOscillator();
+                lfo.frequency.value = 0.15; // super slow
+                const lfoGain = audioCtx.createGain();
+                lfoGain.gain.value = 15;
+                lfo.connect(lfoGain);
+                lfoGain.connect(ambientOscillator.frequency);
+
+                lfo.start();
+                ambientOscillator.start();
+            } catch (err) {
+                console.warn('Web Audio API not supported or blocked:', err);
+            }
+        }
+
+        function toggleCelestialSound() {
+            if (!audioCtx) initAudio();
+            
+            const btnText = document.getElementById('sound-text');
+            const btnIcon = document.getElementById('sound-icon');
+            
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (!isSoundPlaying) {
+                // Fade in
+                ambientGainNode.gain.linearRampToValueAtTime(0.08, audioCtx.currentTime + 2.0);
+                btnText.textContent = "星音伴隨";
+                btnIcon.className = "fa-solid fa-volume-high text-yellow-400";
+                isSoundPlaying = true;
+            } else {
+                // Fade out
+                ambientGainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+                btnText.textContent = "靜音";
+                btnIcon.className = "fa-solid fa-volume-xmark";
+                isSoundPlaying = false;
+            }
+        }
+
+        // Navigation / Setup Flow helpers
+        function fillPresetQuestion(txt) {
+            document.getElementById('oracle-question').value = txt;
+        }
+
+        function proceedToDraw() {
+            const inputVal = document.getElementById('oracle-question').value.trim();
+            if (!inputVal) {
+                alert("請向神諭傾訴您心中的問題或指引方向，以便連結相應的能量。");
+                return;
+            }
+            selectedQuestion = inputVal;
+            document.getElementById('display-question').textContent = selectedQuestion;
+            
+            // UI Transition Step 1 -> Step 2
+            document.getElementById('step-1').classList.add('hidden');
+            document.getElementById('step-2').classList.remove('hidden');
+            
+            // Steps Progress Indicator
+            document.getElementById('step-lbl-1').className = "opacity-40 transition-all";
+            document.getElementById('step-lbl-2').className = "text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1";
+
+            // Initialize Card Deck UI
+            buildDeckSpread();
+            
+            // Try to gently suggest audio activation if not playing
+            if (!isSoundPlaying) {
+                setTimeout(() => {
+                    initAudio();
+                }, 500);
+            }
+        }
+
+        // Build the physical layout of oracle cards
+        function buildDeckSpread() {
+            const deckZone = document.getElementById('deck-zone');
+            deckZone.innerHTML = '';
+            
+            // Shuffle original array first to randomize placement
+            const shuffled = [...ORACLE_DECK].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach((card, idx) => {
+                const container = document.createElement('div');
+                container.className = "card-container w-full aspect-[2/3] max-w-[150px] mx-auto shuffling-card cursor-pointer";
+                container.setAttribute('onclick', `drawThisCard(${card.id}, this)`);
+                container.style.opacity = '0';
+                container.style.transform = 'translateY(20px)';
+
+                container.innerHTML = `
+                    <div class="card-inner w-full h-full relative" style="transform-style: preserve-3d; transition: transform 0.6s;">
+                        <div class="card-back absolute inset-0 w-full h-full rounded-xl border border-yellow-500/20 flex flex-col justify-between p-3">
+                            <div class="border border-yellow-500/10 h-full w-full rounded-lg flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-indigo-950/40 to-slate-950/60">
+                                <div class="absolute inset-0 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:12px_12px] opacity-10"></div>
+                                <i class="fa-regular fa-sun text-yellow-500/30 text-lg sm:text-2xl animate-spin" style="animation-duration: 35s"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                deckZone.appendChild(container);
+                
+                // Cascading entrance animation
+                setTimeout(() => {
+                    container.style.opacity = '1';
+                    container.style.transform = 'translateY(0)';
+                }, idx * 60);
+            });
+        }
+
+        // Shuffle deck visualization
+        function shuffleDeck() {
+            const icon = document.getElementById('shuffle-icon');
+            icon.classList.add('animate-spin');
+            
+            const cardElements = document.querySelectorAll('.shuffling-card');
+            cardElements.forEach((el, index) => {
+                // Animate clustering inward
+                el.style.transform = `translate(${Math.random() * 40 - 20}px, ${Math.random() * 40 - 20}px) scale(0.9)`;
+                el.style.opacity = '0.5';
+            });
+
+            setTimeout(() => {
+                buildDeckSpread();
+                icon.classList.remove('animate-spin');
+            }, 600);
+        }
+
+        // Executed when user taps/clicks a card to draw
+        function drawThisCard(cardId, element) {
+            drawnCard = ORACLE_DECK.find(c => c.id === cardId);
+            
+            // Add a rapid spin-glowing zoom animation to the drawn card
+            element.classList.add('scale-110', 'z-50', 'ring-2', 'ring-yellow-400');
+            
+            // Trigger beautiful ambient chime
+            playChime(440, 'sine', 0.6); // A4
+            playChime(659.25, 'triangle', 0.4); // E5
+
+            setTimeout(() => {
+                revealStage();
+            }, 600);
+        }
+
+        // Procedural chime generator
+        function playChime(freq, type, duration) {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e){}
+        }
+
+        // Prepare the stage with drawn card data and begin AI request
+        function revealStage() {
+            // Transitions Step 2 -> Step 3
+            document.getElementById('step-2').classList.add('hidden');
+            document.getElementById('step-3').classList.remove('hidden');
+            
+            document.getElementById('step-lbl-2').className = "opacity-40 transition-all";
+            document.getElementById('step-lbl-3').className = "text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1";
+
+            // Inject the drawn card's content into the final card container
+            const frontEl = document.getElementById('final-card-front');
+            frontEl.style.background = drawnCard.gradient;
+            
+            // Determine border color style
+            frontEl.innerHTML = `
+                <div class="border border-white/20 h-full w-full rounded-lg flex flex-col justify-between p-4 relative overflow-hidden">
+                    <!-- Mystic subtle card pattern -->
+                    <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:24px_24px]"></div>
+                    
+                    <!-- Card Top Header -->
+                    <div class="flex justify-between items-center text-[10px] tracking-widest text-white/80 font-mono z-10">
+                        <span>ORACLE DECK</span>
+                        <span>N° ${drawnCard.id < 10 ? '0' + drawnCard.id : drawnCard.id}</span>
+                    </div>
+
+                    <!-- Custom Visual (Dynamic elegant SVG Illustration) -->
+                    <div class="flex-grow flex flex-col items-center justify-center space-y-4 z-10 my-4">
+                        <div class="w-20 h-20 rounded-full border border-white/30 flex items-center justify-center bg-white/10 backdrop-blur-md shadow-inner animate-pulse">
+                            <i class="${drawnCard.icon} text-3xl text-white"></i>
+                        </div>
+                        <div class="text-center">
+                            <h4 class="text-2xl font-serif font-bold text-white tracking-widest drop-shadow-md">${drawnCard.title}</h4>
+                            <p class="text-[10px] tracking-widest text-white/90 uppercase mt-1 px-2 py-0.5 bg-black/20 rounded-full inline-block">${drawnCard.keywords.split('｜')[0]}</p>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="text-[11px] text-white/80 leading-relaxed text-center z-10 font-light border-t border-white/10 pt-2 italic">
+                        "${drawnCard.keywords}"
+                    </div>
+                </div>
+            `;
+
+            // Display metadata in interpretation box right away
+            document.getElementById('result-card-title').textContent = `【 ${drawnCard.title} 】`;
+            document.getElementById('result-card-keywords').textContent = `牌面奧秘：${drawnCard.keywords}`;
+
+            // Automatic delayed 3D flip card effect
+            setTimeout(() => {
+                document.getElementById('final-card-inner').classList.add('flipped');
+            }, 300);
+
+            // Execute the Gemini-3-Flash API request to interpret
+            fetchOracleInterpretation();
+        }
+
+        async function fetchOracleInterpretation() {
+            const systemPrompt = `你是一位精通神祕學、心理學與靈性諮商的世界級神諭卡解讀專家。請用溫暖、充滿啟發、富含同理心且優美的繁體中文（台灣習慣用語），針對使用者的提問，解讀他所抽取到的神諭卡。解讀應結構化地包含：
+1. 🌟【星流印記：牌面核心象徵】(精煉解讀牌卡的能量象徵)
+2. 💫【星空對話：為您的疑惑解碼】(針對使用者的具體問題，將卡牌意涵與生活、事業、感情等現狀融合進行深度剖析，有同理心地給予啟示)
+3. 🌿【靈魂藥方：落實生活的指引】(提供 2~3 個具體、可行且智慧的下一步行動建議，而非空泛心靈雞湯)
+4. ✨【宇宙守護祝福】(一段優美的療癒總結祝福語)`;
+
+            const userPrompt = `使用者提問："${selectedQuestion}"
+抽取的神諭卡名：${drawnCard.title}
+牌面核心關鍵字：${drawnCard.keywords}
+牌卡基本定義與大意：${drawnCard.description}`;
+
+            const apiKey = ""; // Canvas handles this automatically when left empty
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userPrompt }] }],
+                        systemInstruction: {
+                            parts: [{ text: systemPrompt }]
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error("宇宙波長異常，與星河連結中斷");
+                }
+
+                const result = await response.json();
+                const content = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (content) {
+                    apiReadingText = content;
+                    displayInterpretation(content);
+                } else {
+                    throw new Error("無法讀取星海的低語。");
+                }
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('ai-loading').innerHTML = `
+                    <div class="text-center py-6 text-red-400">
+                        <i class="fa-solid fa-triangle-exclamation text-3xl mb-3"></i>
+                        <p class="font-semibold">星流通道發生異常</p>
+                        <p class="text-xs text-gray-500 mt-1">${err.message || '請重新嘗試或檢查網路'}</p>
+                        <button onclick="fetchOracleInterpretation()" class="mt-4 px-4 py-2 bg-purple-950 border border-purple-500 text-xs rounded-lg text-white hover:bg-purple-900 transition">重新連結</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Processes Markdown syntax from Gemini and streams it in beautiful blocks
+        function displayInterpretation(rawText) {
+            document.getElementById('ai-loading').classList.add('hidden');
+            const box = document.getElementById('ai-content-box');
+            box.classList.remove('hidden');
+            box.innerHTML = '';
+
+            // Simple markdown parser for headings and list formats
+            const paragraphs = rawText.split('\n');
+            paragraphs.forEach(p => {
+                const trimmed = p.trim();
+                if (!trimmed) return;
+
+                let element;
+                if (trimmed.startsWith('###') || trimmed.startsWith('**') && trimmed.endsWith('**')) {
+                    // Heading
+                    const cleanTxt = trimmed.replace(/###|\*\*/g, '');
+                    element = document.createElement('h4');
+                    element.className = "text-base md:text-lg font-serif font-semibold text-yellow-300 mt-6 mb-2 border-l-2 border-yellow-500/50 pl-3";
+                    element.innerHTML = cleanTxt;
+                } else if (trimmed.startsWith('-') || trimmed.startsWith('*')) {
+                    // List Item
+                    const cleanTxt = trimmed.substring(1).trim();
+                    element = document.createElement('li');
+                    element.className = "ml-4 list-disc text-gray-300 my-2.5 pl-1";
+                    element.innerHTML = parseInlineMarkdown(cleanTxt);
+                } else {
+                    // Normal paragraph
+                    element = document.createElement('p');
+                    element.className = "text-gray-300 mb-4 text-justify leading-relaxed tracking-wide";
+                    element.innerHTML = parseInlineMarkdown(trimmed);
+                }
+                box.appendChild(element);
+            });
+
+            // Make TTS activation button visible
+            document.getElementById('tts-btn').classList.remove('hidden');
+        }
+
+        // Simple inline bold parser
+        function parseInlineMarkdown(text) {
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong class="text-yellow-100 font-semibold">$1</strong>');
+        }
+
+        // Request speech rendering for the output oracle interpretation via Gemini Audio
+        async function readOracleText() {
+            const btn = document.getElementById('tts-btn');
+            const btnText = document.getElementById('tts-btn-text');
+            
+            // If already speaking, stop
+            const audioPlayer = document.getElementById('tts-audio');
+            if (!audioPlayer.paused) {
+                audioPlayer.pause();
+                btnText.textContent = "聆聽星空神諭 (Voice)";
+                btn.classList.remove('ring-2', 'ring-yellow-400');
+                return;
+            }
+
+            // UI Feedback
+            btnText.textContent = "正在凝聚宇宙聖音...";
+            btn.disabled = true;
+
+            // Prepare streamlined text for TTS (limit length slightly for high response quality and short loads)
+            const cleanTtsText = `你抽到了${drawnCard.title}神諭卡。針對你的問題：${selectedQuestion}。以下為你解讀：\n` + 
+                apiReadingText.replace(/[#*_\-\n]/g, ' ').substring(0, 600) + '...感謝宇宙的引導，願星辰照亮你的道路。';
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: `Say warmly and deeply in traditional Taiwanese Mandarin: ${cleanTtsText}` }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: "Vindemiatrix" } // Gentle, empathetic
+                        }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error("音頻通道忙碌中");
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                    const sampleRate = parseInt(mimeType.match(/rate=(\d+)/)[1], 10);
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    audioPlayer.src = audioUrl;
+                    
+                    // Set up event listeners
+                    audioPlayer.oncanplay = () => {
+                        audioPlayer.play();
+                        btnText.textContent = "正播送神諭語音 (點擊停止)";
+                        btn.disabled = false;
+                        btn.classList.add('ring-2', 'ring-yellow-400');
+                    };
+
+                    audioPlayer.onended = () => {
+                        btnText.textContent = "聆聽星空神諭 (Voice)";
+                        btn.classList.remove('ring-2', 'ring-yellow-400');
+                    };
+                } else {
+                    throw new Error("無效的語音數據");
+                }
+
+            } catch (err) {
+                console.warn(err);
+                btnText.textContent = "語音暫不可用，請行閱讀";
+                btn.disabled = false;
+                setTimeout(() => {
+                    btnText.textContent = "聆聽星空神諭 (Voice)";
+                }, 3000);
+            }
+        }
+
+        // Convert base64 string to ArrayBuffer (native JS)
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        // Convert PCM Int16 raw data to playable WAV format
+        function pcmToWav(samples, sampleRate) {
+            const buffer = new ArrayBuffer(44 + samples.length * 2);
+            const view = new DataView(buffer);
+
+            /* RIFF identifier */
+            writeString(view, 0, 'RIFF');
+            /* file length */
+            view.setUint32(4, 36 + samples.length * 2, true);
+            /* RIFF type */
+            writeString(view, 8, 'WAVE');
+            /* format chunk identifier */
+            writeString(view, 12, 'fmt ');
+            /* format chunk length */
+            view.setUint32(16, 16, true);
+            /* sample format (raw) */
+            view.setUint16(20, 1, true);
+            /* channel count */
+            view.setUint16(22, 1, true);
+            /* sample rate */
+            view.setUint32(24, sampleRate, true);
+            /* byte rate (sample rate * block align) */
+            view.setUint32(28, sampleRate * 2, true);
+            /* block align (channel count * bytes per sample) */
+            view.setUint16(32, 2, true);
+            /* bits per sample */
+            view.setUint16(34, 16, true);
+            /* data chunk identifier */
+            writeString(view, 36, 'data');
+            /* data chunk length */
+            view.setUint32(40, samples.length * 2, true);
+
+            // Write PCM audio samples
+            let index = 44;
+            for (let i = 0; i < samples.length; i++) {
+                view.setInt16(index, samples[i], true);
+                index += 2;
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        // Exporting results as a neat text block for download
+        function downloadReport() {
+            const today = new Date().toLocaleDateString('zh-TW');
+            const textContent = `============== 🌌 宇宙星啟 - 占卜神諭報告 🌌 ==============
+諮詢日期：${today}
+我的提問："${selectedQuestion}"
+
+抽中神諭：【 ${drawnCard.title} 】
+牌卡大意：${drawnCard.keywords}
+------------------------------------------------------
+【靈性引導與解讀】：
+
+${apiReadingText}
+
+------------------------------------------------------
+願星空眷顧你的道路，前行無礙。`;
+
+            // Download trigger using execCommand or simple blob link
+            const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `宇宙星啟-神諭占卜報告-${drawnCard.title}.txt`;
+            link.click();
+        }
+
+        // Reset and clear states for next oracle inquiry
+        function restartOracle() {
+            // Stop any playing TTS audio
+            const audioPlayer = document.getElementById('tts-audio');
+            audioPlayer.pause();
+            audioPlayer.src = "";
+
+            // Reset States
+            selectedQuestion = "";
+            drawnCard = null;
+            apiReadingText = "";
+
+            document.getElementById('oracle-question').value = "";
+            document.getElementById('final-card-inner').classList.remove('flipped');
+            document.getElementById('tts-btn').classList.add('hidden');
+            document.getElementById('tts-btn-text').textContent = "聆聽星空神諭 (Voice)";
+
+            // Step Transitions
+            document.getElementById('step-3').classList.add('hidden');
+            document.getElementById('step-1').classList.remove('hidden');
+
+            document.getElementById('step-lbl-3').className = "opacity-40 transition-all";
+            document.getElementById('step-lbl-1').className = "text-yellow-400 font-semibold border-b-2 border-yellow-500 pb-1";
+        }
+
+        // Autoplay/Init handling on load
+        window.onload = function() {
+            // Visual checks on particles and sizing
+            resizeCanvas();
+        };
+    </script>
+</body>
+</html>
